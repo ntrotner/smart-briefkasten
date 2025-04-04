@@ -56,93 +56,27 @@ func (c *AuthenticationAPIController) Routes() Routes {
 			"/login",
 			c.LoginPost,
 		},
-		"LogoutPost": Route{
-			strings.ToUpper("Post"),
-			"/logout",
-			c.LogoutPost,
-		},
-		"RefreshTokenPost": Route{
-			strings.ToUpper("Post"),
-			"/refresh-token",
-			c.RefreshTokenPost,
-		},
-		"RegisterPost": Route{
-			strings.ToUpper("Post"),
-			"/register",
-			c.RegisterPost,
-		},
 	}
 }
 
 // LoginPost - User login
 func (c *AuthenticationAPIController) LoginPost(w http.ResponseWriter, r *http.Request) {
-	userLoginParam := UserLogin{}
+	deviceLoginParam := DeviceLogin{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&userLoginParam); err != nil && !errors.Is(err, io.EOF) {
+	if err := d.Decode(&deviceLoginParam); err != nil && !errors.Is(err, io.EOF) {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertUserLoginRequired(userLoginParam); err != nil {
+	if err := AssertDeviceLoginRequired(deviceLoginParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertUserLoginConstraints(userLoginParam); err != nil {
+	if err := AssertDeviceLoginConstraints(deviceLoginParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.LoginPost(r.Context(), userLoginParam, w)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// LogoutPost - User logout
-func (c *AuthenticationAPIController) LogoutPost(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.LogoutPost(r.Context(), r)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// RefreshTokenPost - Refresh authentication token
-func (c *AuthenticationAPIController) RefreshTokenPost(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.RefreshTokenPost(r.Context(), w, r)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// RegisterPost - Register a new user
-func (c *AuthenticationAPIController) RegisterPost(w http.ResponseWriter, r *http.Request) {
-	userRegistrationParam := UserRegistration{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&userRegistrationParam); err != nil && !errors.Is(err, io.EOF) {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertUserRegistrationRequired(userRegistrationParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertUserRegistrationConstraints(userRegistrationParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.RegisterPost(r.Context(), userRegistrationParam, w)
+	result, err := c.service.LoginPost(r.Context(), deviceLoginParam, w, r)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

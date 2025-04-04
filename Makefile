@@ -67,21 +67,3 @@ openapi-generate-ui:
 openapi-generate:
 	make openapi-generate-backend
 	make openapi-generate-ui
-
-# Release
-release-ui:
-	echo "" >> ${PWD}/src/ui/.env
-	cat ${PWD}/environment/prod/build.env >> ${PWD}/src/ui/.env
-	cd ${PWD}/src/ui && npm install && npm run build
-
-	swa login
-	cd ${PWD}/src/ui && swa deploy ${PWD}/src/ui/build --env=${docker_env} --subscription-id=${AZURE_SUBSCRIPTION_ID} --deployment-token=${SWA_CLI_DEPLOYMENT_TOKEN}
-
-release-backend:
-	docker build -f ${PWD}/dockerfiles/backend.Dockerfile -t ${container_registry}/${app_name}-backend:${VERSION} .
-	docker image push ${container_registry}/${app_name}-backend:${VERSION}
-
-release:
-	make shutdown 
-	make release-ui
-	make release-backend

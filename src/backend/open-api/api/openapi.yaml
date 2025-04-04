@@ -12,12 +12,12 @@ servers:
 security:
 - bearerAuth: []
 tags:
-- description: Authenticate users
+- description: Authenticate device
   name: authentication
-- description: Modify and retrieve user settings
-  name: user
 - description: Check application health
   name: status
+- description: Address device
+  name: device
 paths:
   /health:
     get:
@@ -38,30 +38,10 @@ paths:
       summary: Check health of server
       tags:
       - status
-  /register:
-    post:
-      requestBody:
-        $ref: '#/components/requestBodies/UserRegistration'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-          description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-      summary: Register a new user
-      tags:
-      - authentication
   /login:
     post:
       requestBody:
-        $ref: '#/components/requestBodies/UserLogin'
+        $ref: '#/components/requestBodies/DeviceLogin'
       responses:
         "200":
           content:
@@ -78,76 +58,10 @@ paths:
       summary: User login
       tags:
       - authentication
-  /refresh-token:
-    post:
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-          description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-      summary: Refresh authentication token
-      tags:
-      - authentication
-  /logout:
-    post:
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-          description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-      summary: User logout
-      tags:
-      - authentication
-  /profile:
-    get:
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserProfile'
-          description: User profile
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-      summary: Get user profile
-      tags:
-      - user
-  /password-reset:
+  /device/change-state:
     post:
       requestBody:
-        $ref: '#/components/requestBodies/PasswordReset'
+        $ref: '#/components/requestBodies/DeviceChangeState'
       responses:
         "200":
           content:
@@ -155,25 +69,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
           description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
         "401":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Error messages
-      summary: Initiate password reset
+      summary: Modify state of device
       tags:
-      - user
-  /change-password:
+      - device
+  /device/change-options:
     post:
       requestBody:
-        $ref: '#/components/requestBodies/ChangePassword'
+        $ref: '#/components/requestBodies/DeviceChangeOptions'
       responses:
         "200":
           content:
@@ -181,79 +89,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
           description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
         "401":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Error messages
-      summary: Change user password
+      summary: Modify options of device
       tags:
-      - user
-  /change-email:
-    post:
-      requestBody:
-        $ref: '#/components/requestBodies/ChangeEmail'
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-          description: Success
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-          description: Error messages
-      summary: Change user email
-      tags:
-      - user
+      - device
 components:
   requestBodies:
-    UserRegistration:
+    DeviceLogin:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/UserRegistration'
-      description: User registration
-    UserLogin:
+            $ref: '#/components/schemas/DeviceLogin'
+      description: Device login
+    DeviceChangeState:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/UserLogin'
-      description: User login
-    PasswordReset:
+            $ref: '#/components/schemas/DeviceChangeState'
+      description: Change device state
+    DeviceChangeOptions:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/PasswordReset'
-      description: Password reset
-    ChangePassword:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ChangePassword'
-      description: Password change
-    ChangeEmail:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ChangeEmail'
-      description: Email change
+            $ref: '#/components/schemas/DeviceChangeOptions'
+      description: Change device options
   responses:
     Success:
       content:
@@ -267,12 +131,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
       description: Error messages
-    UserProfile:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/UserProfile'
-      description: User profile
     Health:
       content:
         application/json:
@@ -333,91 +191,88 @@ components:
         db:
           type: boolean
       type: object
-    UserProfile:
-      example:
-        email: email
+    DeviceChangeState:
+      oneOf:
+      - $ref: '#/components/schemas/OpenStateOptions'
+      - $ref: '#/components/schemas/ClosedStateOptions'
+      - $ref: '#/components/schemas/PacktrapStateOptions'
+    OpenStateOptions:
       properties:
-        email:
+        state:
+          enum:
+          - open
+          type: string
+        emitOpenEvent:
+          description: Emit open event
+          type: boolean
+      required:
+      - emitOpenEvent
+      - state
+      type: object
+    ClosedStateOptions:
+      properties:
+        state:
+          enum:
+          - closed
           type: string
       required:
-      - email
+      - state
       type: object
-    UserRegistration:
+    PacktrapStateOptions:
+      properties:
+        state:
+          enum:
+          - packtrap
+          type: string
+        emitPacktrapEvent:
+          description: Emit packtrap event
+          type: boolean
+      required:
+      - emitPacktrapEvent
+      - state
+      type: object
+    DeviceLogin:
+      example:
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+      properties:
+        token:
+          format: application/jwt
+          type: string
+      required:
+      - token
+      type: object
+    DeviceChangeOptions:
+      example:
+        wifi:
+          password: password
+          ssid: ssid
+        kafka:
+          url: url
+        name: name
+      properties:
+        name:
+          type: string
+        wifi:
+          $ref: '#/components/schemas/DeviceChangeOptions_wifi'
+        kafka:
+          $ref: '#/components/schemas/DeviceChangeOptions_kafka'
+      type: object
+    DeviceChangeOptions_wifi:
       example:
         password: password
-        email: email
+        ssid: ssid
       properties:
-        email:
+        ssid:
           type: string
         password:
-          format: password
-          maxLength: 64
-          minLength: 8
-          pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$"
           type: string
-      required:
-      - email
-      - password
       type: object
-    UserLogin:
+    DeviceChangeOptions_kafka:
       example:
-        password: password
-        email: email
+        url: url
       properties:
-        email:
+        url:
           type: string
-        password:
-          format: password
-          maxLength: 64
-          minLength: 8
-          pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$"
-          type: string
-      required:
-      - email
-      - password
-      type: object
-    PasswordReset:
-      example:
-        email: email
-      properties:
-        email:
-          type: string
-      required:
-      - email
-      type: object
-    ChangePassword:
-      example:
-        newPassword: newPassword
-        currentPassword: currentPassword
-      properties:
-        currentPassword:
-          format: password
-          maxLength: 64
-          minLength: 8
-          pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$"
-          type: string
-        newPassword:
-          format: password
-          maxLength: 64
-          minLength: 8
-          pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$"
-          type: string
-      required:
-      - currentPassword
-      - newPassword
-      type: object
-    ChangeEmail:
-      example:
-        newEmail: newEmail
-        currentEmail: currentEmail
-      properties:
-        currentEmail:
-          type: string
-        newEmail:
-          type: string
-      required:
-      - currentEmail
-      - newEmail
       type: object
   securitySchemes:
     bearerAuth:

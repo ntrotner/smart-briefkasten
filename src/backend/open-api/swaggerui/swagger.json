@@ -1,357 +1,300 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Swagger - OpenAPI 3.0",
     "contact": {
       "email": "nikita@ttnr.me"
     },
+    "title": "Swagger - OpenAPI 3.0",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://api.template.de/",
-      "description": "Dev server"
+      "description": "Dev server",
+      "url": "http://api.template.de/"
     },
     {
-      "url": "https://euw.backend.example.com/",
-      "description": "Prod server"
+      "description": "Prod server",
+      "url": "https://euw.backend.example.com/"
     }
   ],
-  "tags": [
-    {
-      "name": "authentication",
-      "description": "Authenticate users"
-    },
-    {
-      "name": "user",
-      "description": "Modify and retrieve user settings"
-    },
-    {
-      "name": "status",
-      "description": "Check application health"
-    }
-  ],
-  "paths": {
-    "/health": {
-      "get": {
-        "tags": [
-          "status"
-        ],
-        "summary": "Check health of server",
-        "operationId": "health",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Health"
-          },
-          "500": {
-            "$ref": "#/components/responses/Health"
-          }
-        }
-      }
-    },
-    "/register": {
-      "post": {
-        "tags": [
-          "authentication"
-        ],
-        "summary": "Register a new user",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/UserRegistration"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/login": {
-      "post": {
-        "tags": [
-          "authentication"
-        ],
-        "summary": "User login",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/UserLogin"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/refresh-token": {
-      "post": {
-        "tags": [
-          "authentication"
-        ],
-        "summary": "Refresh authentication token",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/logout": {
-      "post": {
-        "tags": [
-          "authentication"
-        ],
-        "summary": "User logout",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/profile": {
-      "get": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Get user profile",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/UserProfile"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/password-reset": {
-      "post": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Initiate password reset",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/PasswordReset"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/change-password": {
-      "post": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Change user password",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/ChangePassword"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/change-email": {
-      "post": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Change user email",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/ChangeEmail"
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/Success"
-          },
-          "400": {
-            "$ref": "#/components/responses/Error"
-          },
-          "401": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    }
-  },
   "security": [
     {
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "description": "Authenticate device",
+      "name": "authentication"
+    },
+    {
+      "description": "Check application health",
+      "name": "status"
+    },
+    {
+      "description": "Address device",
+      "name": "device"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Health"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Health"
+          }
+        },
+        "summary": "Check health of server",
+        "tags": [
+          "status"
+        ]
+      }
+    },
+    "/login": {
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DeviceLogin"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "User login",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/device/change-state": {
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DeviceChangeState"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "Modify state of device",
+        "tags": [
+          "device"
+        ]
+      }
+    },
+    "/device/change-options": {
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DeviceChangeOptions"
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "Modify options of device",
+        "tags": [
+          "device"
+        ]
+      }
+    }
+  },
   "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
+    "requestBodies": {
+      "DeviceLogin": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceLogin"
+            }
+          }
+        },
+        "description": "Device login"
+      },
+      "DeviceChangeState": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceChangeState"
+            }
+          }
+        },
+        "description": "Change device state"
+      },
+      "DeviceChangeOptions": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceChangeOptions"
+            }
+          }
+        },
+        "description": "Change device options"
       }
     },
     "responses": {
       "Success": {
-        "description": "Success",
         "content": {
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Success"
             }
           }
-        }
+        },
+        "description": "Success"
       },
       "Error": {
-        "description": "Error messages",
         "content": {
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Error"
             }
           }
-        }
-      },
-      "UserProfile": {
-        "description": "User profile",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UserProfile"
-            }
-          }
-        }
+        },
+        "description": "Error messages"
       },
       "Health": {
-        "description": "Health",
         "content": {
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Health"
             }
           }
-        }
-      }
-    },
-    "requestBodies": {
-      "UserRegistration": {
-        "description": "User registration",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UserRegistration"
-            }
-          }
-        }
-      },
-      "UserLogin": {
-        "description": "User login",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/UserLogin"
-            }
-          }
-        }
-      },
-      "PasswordReset": {
-        "description": "Password reset",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/PasswordReset"
-            }
-          }
-        }
-      },
-      "ChangePassword": {
-        "description": "Password change",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ChangePassword"
-            }
-          }
-        }
-      },
-      "ChangeEmail": {
-        "description": "Email change",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ChangeEmail"
-            }
-          }
-        }
+        },
+        "description": "Health"
       }
     },
     "schemas": {
       "Success": {
-        "type": "object",
+        "example": {
+          "warningMessages": [
+            {
+              "code": "code",
+              "message": "message"
+            },
+            {
+              "code": "code",
+              "message": "message"
+            }
+          ],
+          "messages": [
+            {
+              "code": "code",
+              "message": "message"
+            },
+            {
+              "code": "code",
+              "message": "message"
+            }
+          ]
+        },
         "properties": {
           "messages": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Message"
-            }
+            },
+            "type": "array"
           },
           "warningMessages": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Message"
-            }
+            },
+            "type": "array"
           }
-        }
+        },
+        "type": "object"
       },
       "Error": {
-        "type": "object",
         "properties": {
           "warningMessages": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Message"
-            }
+            },
+            "type": "array"
           },
           "errorMessages": {
-            "type": "array",
             "items": {
               "$ref": "#/components/schemas/Message"
-            }
+            },
+            "type": "array"
           }
-        }
+        },
+        "type": "object"
       },
       "Message": {
-        "type": "object",
+        "example": {
+          "code": "code",
+          "message": "message"
+        },
         "properties": {
           "code": {
             "type": "string"
@@ -359,10 +302,14 @@
           "message": {
             "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "Health": {
-        "type": "object",
+        "example": {
+          "server": true,
+          "db": true
+        },
         "properties": {
           "server": {
             "type": "boolean"
@@ -370,105 +317,122 @@
           "db": {
             "type": "boolean"
           }
+        },
+        "type": "object"
+      },
+      "DeviceChangeState": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/OpenStateOptions"
+          },
+          {
+            "$ref": "#/components/schemas/ClosedStateOptions"
+          },
+          {
+            "$ref": "#/components/schemas/PacktrapStateOptions"
+          }
+        ]
+      },
+      "OpenStateOptions": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "open"
+            ]
+          },
+          "emitOpenEvent": {
+            "type": "boolean",
+            "description": "Emit open event"
+          }
+        },
+        "required": [
+          "state",
+          "emitOpenEvent"
+        ]
+      },
+      "ClosedStateOptions": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "closed"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "PacktrapStateOptions": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "packtrap"
+            ]
+          },
+          "emitPacktrapEvent": {
+            "type": "boolean",
+            "description": "Emit packtrap event"
+          }
+        },
+        "required": [
+          "state",
+          "emitPacktrapEvent"
+        ]
+      },
+      "DeviceLogin": {
+        "example": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        },
+        "properties": {
+          "token": {
+            "type": "string",
+            "format": "application/jwt"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
+      "DeviceChangeOptions": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "wifi": {
+            "type": "object",
+            "properties": {
+              "ssid": {
+                "type": "string"
+              },
+              "password": {
+                "type": "string"
+              }
+            }
+          },
+          "kafka": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            }
+          }
         }
-      },
-      "UserProfile": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "UserRegistration": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 64,
-            "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$",
-            "format": "password"
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      },
-      "UserLogin": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 64,
-            "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$",
-            "format": "password"
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      },
-      "PasswordReset": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "ChangePassword": {
-        "type": "object",
-        "properties": {
-          "currentPassword": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 64,
-            "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$",
-            "format": "password"
-          },
-          "newPassword": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 64,
-            "pattern": "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+{}|:<>?~]).*$",
-            "format": "password"
-          }
-        },
-        "required": [
-          "currentPassword",
-          "newPassword"
-        ]
-      },
-      "ChangeEmail": {
-        "type": "object",
-        "properties": {
-          "currentEmail": {
-            "type": "string"
-          },
-          "newEmail": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "currentEmail",
-          "newEmail"
-        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
       }
     }
   }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"template_backend/common"
-	database_user "template_backend/database/paths/user"
+	database_device "template_backend/database/paths/device"
 	"time"
 
 	_ "github.com/go-kivik/couchdb"
@@ -62,10 +62,10 @@ func Connect(ctx context.Context) {
 	}
 
 	for _, value := range []string{
-		database_user.USER_DB,
+		database_device.DEVICE_DB,
 	} {
 		createDatabase(ctx, value)
 	}
 
-	go database_user.SetupUser(ctx, databases)
+	go database_device.SetupDevice(ctx, databases)
 }

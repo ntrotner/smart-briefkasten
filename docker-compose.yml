@@ -20,23 +20,8 @@ services:
     volumes:
       - ./dockerfiles/nginx:/data
     depends_on:
-      - ui
       - backend
       - database
-  ui:
-    container_name: ui
-    build:
-      context: .
-      dockerfile: ./dockerfiles/ui.Dockerfile
-    environment:
-      - app_env=${docker_env}
-    restart: unless-stopped
-    networks:
-      - host_network
-    volumes:
-      - ./src/ui/src:/src/src
-    env_file:
-      - ./environment/dev/ui.env
   backend:
     container_name: backend
     build:
