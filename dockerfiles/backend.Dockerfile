@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.21
+FROM golang:1.22
 
 RUN apt-get update -y
 RUN apt-get upgrade -y

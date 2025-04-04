@@ -1,27 +1,6 @@
 version: '3.7'
 
 services:
-  proxy:
-    container_name: nginx
-    image: 'jc21/nginx-proxy-manager:latest'
-    restart: unless-stopped
-    networks:
-      - host_network
-    env_file:
-      - ./environment/dev/nginx.env
-    healthcheck:
-      test: ["CMD", "/bin/check-health"]
-      interval: 30s
-      timeout: 10s
-    ports:
-      - '80:80'
-      - '3000:81'
-      - '443:443'
-    volumes:
-      - ./dockerfiles/nginx:/data
-    depends_on:
-      - backend
-      - database
   backend:
     container_name: backend
     build:
@@ -36,6 +15,9 @@ services:
       - ./src/backend:/app
     env_file:
       - ./environment/dev/backend.env
+    ports:
+      - '1883:1883'
+      - '8080:8080'
     depends_on:
       - database
   database:

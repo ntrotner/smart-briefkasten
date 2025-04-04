@@ -12,8 +12,10 @@ package openapi
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	database_device "template_backend/database/paths/device"
+	"template_backend/mqtt"
 	openapi_common "template_backend/open-api/common"
 )
 
@@ -66,6 +68,17 @@ func (s *DeviceAPIService) DeviceChangeStatePost(ctx context.Context, deviceChan
 	err = database_device.UpdateDeviceState(ctx, device.Token, state)
 	if err != nil {
 		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
+	}
+
+	state.ID = device.ID
+	json, err := json.Marshal(state)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: "Error marshalling state"}}}), nil
+	}
+
+	err = mqtt.PublishCommand(string(json))
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: "Error publishing command"}}}), nil
 	}
 
 	return Response(200, Success{}), nil

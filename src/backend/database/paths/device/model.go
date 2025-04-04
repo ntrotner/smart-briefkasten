@@ -14,11 +14,12 @@ type DeviceProfile struct {
 	Token     string        `json:"token,omitempty"`
 	State     DeviceState   `json:"state,omitempty"`
 	Options   DeviceOptions `json:"options,omitempty"`
-	CreatedAt int64         `json:"created_at,omitempty"`
-	UpdatedAt int64         `json:"updated_at,omitempty"`
+	CreatedAt int64         `json:"createdAt,omitempty"`
+	UpdatedAt int64         `json:"updatedAt,omitempty"`
 }
 
 type DeviceChangeState struct {
+	ID                string      `json:"id,omitempty"`
 	State             DeviceState `json:"state,omitempty"`
 	EmitPacktrapEvent bool        `json:"emitPacktrapEvent,omitempty"`
 	EmitOpenEvent     bool        `json:"emitOpenEvent,omitempty"`
