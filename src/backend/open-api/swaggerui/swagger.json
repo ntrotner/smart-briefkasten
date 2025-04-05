@@ -34,6 +34,10 @@
     {
       "description": "Address device",
       "name": "device"
+    },
+    {
+      "description": "Notification from device",
+      "name": "notification"
     }
   ],
   "paths": {
@@ -98,6 +102,75 @@
         "summary": "User login",
         "tags": [
           "authentication"
+        ]
+      }
+    },
+    "/device/get-state": {
+      "get": {
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DeviceState"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "Get device state",
+        "tags": [
+          "device"
+        ]
+      }
+    },
+    "/device/get-options": {
+      "get": {
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DeviceOptions"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "Get device options",
+        "tags": [
+          "device"
+        ]
+      }
+    },
+    "/device/consume-notifications": {
+      "get": {
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Notifications"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Error messages"
+          }
+        },
+        "summary": "Get device notifications",
+        "tags": [
+          "notification"
         ]
       }
     },
@@ -170,6 +243,16 @@
   },
   "components": {
     "requestBodies": {
+      "DeviceState": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceState"
+            }
+          }
+        },
+        "description": "Device state"
+      },
       "DeviceLogin": {
         "content": {
           "application/json": {
@@ -184,7 +267,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/DeviceChangeState"
+              "$ref": "#/components/schemas/DeviceState"
             }
           }
         },
@@ -194,7 +277,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/DeviceChangeOptions"
+              "$ref": "#/components/schemas/DeviceOptions"
             }
           }
         },
@@ -202,6 +285,36 @@
       }
     },
     "responses": {
+      "Notifications": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Notifications"
+            }
+          }
+        },
+        "description": "Notification"
+      },
+      "DeviceState": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceState"
+            }
+          }
+        },
+        "description": "Device state"
+      },
+      "DeviceOptions": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DeviceOptions"
+            }
+          }
+        },
+        "description": "Device options"
+      },
       "Success": {
         "content": {
           "application/json": {
@@ -320,7 +433,7 @@
         },
         "type": "object"
       },
-      "DeviceChangeState": {
+      "DeviceState": {
         "oneOf": [
           {
             "$ref": "#/components/schemas/OpenStateOptions"
@@ -400,7 +513,7 @@
         ],
         "type": "object"
       },
-      "DeviceChangeOptions": {
+      "DeviceOptions": {
         "type": "object",
         "properties": {
           "name": {
@@ -425,6 +538,29 @@
               }
             }
           }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "number"
+          }
+        }
+      },
+      "Notifications": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Notification"
         }
       }
     },

@@ -2,6 +2,7 @@ package database_device
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog/log"
 )
@@ -92,4 +93,22 @@ func AuthenticateDevice(ctx context.Context, token string) *DeviceProfile {
 	}
 
 	return device
+}
+
+func GetDeviceOptions(ctx context.Context, token string) (*DeviceOptions, error) {
+	device := FindDeviceByToken(ctx, token)
+	if device == nil {
+		return nil, errors.New("device not found")
+	}
+
+	return &device.Options, nil
+}
+
+func GetDeviceState(ctx context.Context, token string) (*DeviceState, error) {
+	device := FindDeviceByToken(ctx, token)
+	if device == nil {
+		return nil, errors.New("device not found")
+	}
+
+	return &device.State, nil
 }

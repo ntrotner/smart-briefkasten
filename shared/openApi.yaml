@@ -18,6 +18,8 @@ tags:
   name: status
 - description: Address device
   name: device
+- description: Notification from device
+  name: notification
 paths:
   /health:
     get:
@@ -58,6 +60,48 @@ paths:
       summary: User login
       tags:
       - authentication
+  /device/get-state:
+    get:
+      responses:
+        "200":
+          $ref: '#/components/responses/DeviceState'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device state
+      tags:
+      - device
+  /device/get-options:
+    get:
+      responses:
+        "200":
+          $ref: '#/components/responses/DeviceOptions'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device options
+      tags:
+      - device
+  /device/consume-notifications:
+    get:
+      responses:
+        "200":
+          $ref: '#/components/responses/Notifications'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device notifications
+      tags:
+      - notification
   /device/change-state:
     post:
       requestBody:
@@ -100,6 +144,12 @@ paths:
       - device
 components:
   requestBodies:
+    DeviceState:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceState'
+      description: Device state
     DeviceLogin:
       content:
         application/json:
@@ -110,15 +160,33 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DeviceChangeState'
+            $ref: '#/components/schemas/DeviceState'
       description: Change device state
     DeviceChangeOptions:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DeviceChangeOptions'
+            $ref: '#/components/schemas/DeviceOptions'
       description: Change device options
   responses:
+    Notifications:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notifications'
+      description: Notification
+    DeviceState:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceState'
+      description: Device state
+    DeviceOptions:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceOptions'
+      description: Device options
     Success:
       content:
         application/json:
@@ -191,7 +259,7 @@ components:
         db:
           type: boolean
       type: object
-    DeviceChangeState:
+    DeviceState:
       oneOf:
       - $ref: '#/components/schemas/OpenStateOptions'
       - $ref: '#/components/schemas/ClosedStateOptions'
@@ -238,7 +306,7 @@ components:
       required:
       - token
       type: object
-    DeviceChangeOptions:
+    DeviceOptions:
       type: object
       properties:
         name:
@@ -255,6 +323,21 @@ components:
           properties:
             url:
               type: string
+    Notification:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        topic:
+          type: string
+        payload:
+          type: string
+        createdAt:
+          type: number
+    Notifications:
+      type: array
+      items:
+        $ref: '#/components/schemas/Notification'
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT

@@ -8,7 +8,8 @@ import (
 )
 
 type DeviceTopicReadRestrictorOptions struct {
-	AllowedTopicPrefix string
+	AllowedTopicPrefix []string
+	Server             *mqtt.Server
 }
 
 // DeviceTopicReadRestrictorHook restricts external clients to only read from a specific topic
@@ -30,19 +31,21 @@ func (h *DeviceTopicReadRestrictorHook) OnACLCheck(cl *mqtt.Client, topic string
 	}
 
 	// For read operations, check if the topic is allowed
-	if strings.HasPrefix(topic, h.config.AllowedTopicPrefix) {
-		log.Debug().
-			Str("client", cl.ID).
-			Str("topic", topic).
-			Msg("Allowed read from device topic")
-		return true
+	for _, prefix := range h.config.AllowedTopicPrefix {
+		if strings.HasPrefix(topic, prefix) {
+			log.Debug().
+				Str("client", cl.ID).
+				Str("topic", topic).
+				Msg("Allowed read from device topic")
+			return true
+		}
 	}
 
 	// If the topic doesn't match the allowed prefix, deny the read
 	log.Warn().
 		Str("client", cl.ID).
 		Str("topic", topic).
-		Str("allowed_prefix", h.config.AllowedTopicPrefix).
+		Str("allowed_prefix", strings.Join(h.config.AllowedTopicPrefix, ", ")).
 		Msg("Denied read from unauthorized topic")
 	return false
 }

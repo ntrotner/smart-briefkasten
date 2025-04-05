@@ -28,6 +28,15 @@ type AuthenticationAPIRouter interface {
 type DeviceAPIRouter interface {
 	DeviceChangeOptionsPost(http.ResponseWriter, *http.Request)
 	DeviceChangeStatePost(http.ResponseWriter, *http.Request)
+	DeviceGetOptionsGet(http.ResponseWriter, *http.Request)
+	DeviceGetStateGet(http.ResponseWriter, *http.Request)
+}
+
+// NotificationAPIRouter defines the required methods for binding the api requests to a responses for the NotificationAPI
+// The NotificationAPIRouter implementation should parse necessary information from the http request,
+// pass the data to a NotificationAPIServicer to perform the required actions, then write the service results to the http response.
+type NotificationAPIRouter interface {
+	DeviceConsumeNotificationsGet(http.ResponseWriter, *http.Request)
 }
 
 // StatusAPIRouter defines the required methods for binding the api requests to a responses for the StatusAPI
@@ -50,8 +59,18 @@ type AuthenticationAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type DeviceAPIServicer interface {
-	DeviceChangeOptionsPost(context.Context, DeviceChangeOptions, http.ResponseWriter, *http.Request) (ImplResponse, error)
-	DeviceChangeStatePost(context.Context, DeviceChangeState, http.ResponseWriter, *http.Request) (ImplResponse, error)
+	DeviceChangeOptionsPost(context.Context, DeviceOptions, http.ResponseWriter, *http.Request) (ImplResponse, error)
+	DeviceChangeStatePost(context.Context, DeviceState, http.ResponseWriter, *http.Request) (ImplResponse, error)
+	DeviceGetOptionsGet(context.Context, http.ResponseWriter, *http.Request) (ImplResponse, error)
+	DeviceGetStateGet(context.Context, http.ResponseWriter, *http.Request) (ImplResponse, error)
+}
+
+// NotificationAPIServicer defines the api actions for the NotificationAPI service
+// This interface intended to stay up to date with the openapi yaml used to generate it,
+// while the service implementation can be ignored with the .openapi-generator-ignore file
+// and updated with the logic required for the API.
+type NotificationAPIServicer interface {
+	DeviceConsumeNotificationsGet(context.Context, http.ResponseWriter, *http.Request) (ImplResponse, error)
 }
 
 // StatusAPIServicer defines the api actions for the StatusAPI service

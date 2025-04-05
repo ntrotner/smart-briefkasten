@@ -26,6 +26,7 @@ type DeviceChangeState struct {
 }
 
 type DeviceOptions struct {
+	ID    string       `json:"id,omitempty"`
 	Name  string       `json:"name,omitempty"`
 	Wifi  WifiOptions  `json:"wifi,omitempty"`
 	Kafka KafkaOptions `json:"kafka,omitempty"`

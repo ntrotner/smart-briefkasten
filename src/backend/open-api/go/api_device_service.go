@@ -31,39 +31,50 @@ func NewDeviceAPIService() DeviceAPIServicer {
 }
 
 // DeviceChangeOptionsPost - Modify options of device
-func (s *DeviceAPIService) DeviceChangeOptionsPost(ctx context.Context, deviceChangeOptions DeviceChangeOptions, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
+func (s *DeviceAPIService) DeviceChangeOptionsPost(ctx context.Context, deviceOptions DeviceOptions, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
 	device, err := openapi_common.IsDeviceAuthorized(ctx, r)
 	if err != nil {
 		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
 	}
-
-	err = database_device.UpdateDeviceOptions(ctx, device.Token, database_device.DeviceOptions{
+	options := database_device.DeviceOptions{
 		Wifi: database_device.WifiOptions{
-			SSID:     deviceChangeOptions.Wifi.Ssid,
-			Password: deviceChangeOptions.Wifi.Password,
+			SSID:     deviceOptions.Wifi.Ssid,
+			Password: deviceOptions.Wifi.Password,
 		},
 		Kafka: database_device.KafkaOptions{
-			URL: deviceChangeOptions.Kafka.Url,
+			URL: deviceOptions.Kafka.Url,
 		},
-	})
+	}
+
+	err = database_device.UpdateDeviceOptions(ctx, device.Token, options)
 	if err != nil {
 		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
 	}
 
+	options.ID = device.ID
+	json, err := json.Marshal(options)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: "Error marshalling options"}}}), nil
+	}
+
+	err = mqtt.PublishOptions(string(json))
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: err.Error()}}}), nil
+	}
 	return Response(200, Success{}), nil
 }
 
 // DeviceChangeStatePost - Modify state of device
-func (s *DeviceAPIService) DeviceChangeStatePost(ctx context.Context, deviceChangeState DeviceChangeState, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
+func (s *DeviceAPIService) DeviceChangeStatePost(ctx context.Context, deviceState DeviceState, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
 	device, err := openapi_common.IsDeviceAuthorized(ctx, r)
 	if err != nil {
 		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
 	}
 
 	state := database_device.DeviceChangeState{
-		State:             database_device.DeviceState(deviceChangeState.State),
-		EmitPacktrapEvent: deviceChangeState.EmitPacktrapEvent,
-		EmitOpenEvent:     deviceChangeState.EmitOpenEvent,
+		State:             database_device.DeviceState(deviceState.State),
+		EmitPacktrapEvent: deviceState.EmitPacktrapEvent,
+		EmitOpenEvent:     deviceState.EmitOpenEvent,
 	}
 	err = database_device.UpdateDeviceState(ctx, device.Token, state)
 	if err != nil {
@@ -76,10 +87,40 @@ func (s *DeviceAPIService) DeviceChangeStatePost(ctx context.Context, deviceChan
 		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: "Error marshalling state"}}}), nil
 	}
 
-	err = mqtt.PublishCommand(string(json))
+	err = mqtt.PublishState(string(json))
 	if err != nil {
-		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: "Error publishing command"}}}), nil
+		return Response(401, Error{ErrorMessages: []Message{{Code: "200", Message: err.Error()}}}), nil
 	}
 
 	return Response(200, Success{}), nil
+}
+
+// DeviceGetOptionsGet - Get device options
+func (s *DeviceAPIService) DeviceGetOptionsGet(ctx context.Context, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
+	device, err := openapi_common.IsDeviceAuthorized(ctx, r)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
+	}
+
+	deviceOptions, err := database_device.GetDeviceOptions(ctx, device.Token)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
+	}
+
+	return Response(200, *deviceOptions), nil
+}
+
+// DeviceGetStateGet - Get device state
+func (s *DeviceAPIService) DeviceGetStateGet(ctx context.Context, w http.ResponseWriter, r *http.Request) (ImplResponse, error) {
+	device, err := openapi_common.IsDeviceAuthorized(ctx, r)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
+	}
+
+	deviceState, err := database_device.GetDeviceState(ctx, device.Token)
+	if err != nil {
+		return Response(401, Error{ErrorMessages: []Message{{Code: "100", Message: "Unauthorized. Please check your credentials."}}}), nil
+	}
+
+	return Response(200, *deviceState), nil
 }

@@ -18,10 +18,14 @@ func SetupHttp() {
 	DeviceAPIService := openapi.NewDeviceAPIService()
 	DeviceAPIController := openapi.NewDeviceAPIController(DeviceAPIService)
 
+	NotificationAPIService := openapi.NewNotificationAPIService()
+	NotificationAPIController := openapi.NewNotificationAPIController(NotificationAPIService)
+
 	router := openapi.NewRouter(
 		AuthenticationAPIController,
 		StatusAPIController,
 		DeviceAPIController,
+		NotificationAPIController,
 	)
 	common.SetupPerformanceLogger(router)
 	common.SetupSwaggerUi(router)

@@ -18,6 +18,8 @@ tags:
   name: status
 - description: Address device
   name: device
+- description: Notification from device
+  name: notification
 paths:
   /health:
     get:
@@ -58,6 +60,60 @@ paths:
       summary: User login
       tags:
       - authentication
+  /device/get-state:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceState'
+          description: Device state
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device state
+      tags:
+      - device
+  /device/get-options:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceOptions'
+          description: Device options
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device options
+      tags:
+      - device
+  /device/consume-notifications:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+          description: Success
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Error messages
+      summary: Get device notifications
+      tags:
+      - notification
   /device/change-state:
     post:
       requestBody:
@@ -100,6 +156,18 @@ paths:
       - device
 components:
   requestBodies:
+    DeviceState:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceState'
+      description: Device state
+    Notification:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Notification'
+      description: Notification
     DeviceLogin:
       content:
         application/json:
@@ -110,15 +178,27 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DeviceChangeState'
+            $ref: '#/components/schemas/DeviceState'
       description: Change device state
     DeviceChangeOptions:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DeviceChangeOptions'
+            $ref: '#/components/schemas/DeviceOptions'
       description: Change device options
   responses:
+    DeviceState:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceState'
+      description: Device state
+    DeviceOptions:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceOptions'
+      description: Device options
     Success:
       content:
         application/json:
@@ -191,7 +271,7 @@ components:
         db:
           type: boolean
       type: object
-    DeviceChangeState:
+    DeviceState:
       oneOf:
       - $ref: '#/components/schemas/OpenStateOptions'
       - $ref: '#/components/schemas/ClosedStateOptions'
@@ -241,7 +321,7 @@ components:
       required:
       - token
       type: object
-    DeviceChangeOptions:
+    DeviceOptions:
       example:
         wifi:
           password: password
@@ -253,11 +333,22 @@ components:
         name:
           type: string
         wifi:
-          $ref: '#/components/schemas/DeviceChangeOptions_wifi'
+          $ref: '#/components/schemas/DeviceOptions_wifi'
         kafka:
-          $ref: '#/components/schemas/DeviceChangeOptions_kafka'
+          $ref: '#/components/schemas/DeviceOptions_kafka'
       type: object
-    DeviceChangeOptions_wifi:
+    Notification:
+      properties:
+        deviceId:
+          type: string
+        topic:
+          type: string
+        payload:
+          type: string
+        createdAt:
+          type: number
+      type: object
+    DeviceOptions_wifi:
       example:
         password: password
         ssid: ssid
@@ -267,7 +358,7 @@ components:
         password:
           type: string
       type: object
-    DeviceChangeOptions_kafka:
+    DeviceOptions_kafka:
       example:
         url: url
       properties:

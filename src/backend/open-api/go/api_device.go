@@ -61,27 +61,37 @@ func (c *DeviceAPIController) Routes() Routes {
 			"/device/change-state",
 			c.DeviceChangeStatePost,
 		},
+		"DeviceGetOptionsGet": Route{
+			strings.ToUpper("Get"),
+			"/device/get-options",
+			c.DeviceGetOptionsGet,
+		},
+		"DeviceGetStateGet": Route{
+			strings.ToUpper("Get"),
+			"/device/get-state",
+			c.DeviceGetStateGet,
+		},
 	}
 }
 
 // DeviceChangeOptionsPost - Modify options of device
 func (c *DeviceAPIController) DeviceChangeOptionsPost(w http.ResponseWriter, r *http.Request) {
-	deviceChangeOptionsParam := DeviceChangeOptions{}
+	deviceOptionsParam := DeviceOptions{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&deviceChangeOptionsParam); err != nil && !errors.Is(err, io.EOF) {
+	if err := d.Decode(&deviceOptionsParam); err != nil && !errors.Is(err, io.EOF) {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertDeviceChangeOptionsRequired(deviceChangeOptionsParam); err != nil {
+	if err := AssertDeviceOptionsRequired(deviceOptionsParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertDeviceChangeOptionsConstraints(deviceChangeOptionsParam); err != nil {
+	if err := AssertDeviceOptionsConstraints(deviceOptionsParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.DeviceChangeOptionsPost(r.Context(), deviceChangeOptionsParam, w, r)
+	result, err := c.service.DeviceChangeOptionsPost(r.Context(), deviceOptionsParam, w, r)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -93,22 +103,46 @@ func (c *DeviceAPIController) DeviceChangeOptionsPost(w http.ResponseWriter, r *
 
 // DeviceChangeStatePost - Modify state of device
 func (c *DeviceAPIController) DeviceChangeStatePost(w http.ResponseWriter, r *http.Request) {
-	deviceChangeStateParam := DeviceChangeState{}
+	deviceStateParam := DeviceState{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
-	if err := d.Decode(&deviceChangeStateParam); err != nil && !errors.Is(err, io.EOF) {
+	if err := d.Decode(&deviceStateParam); err != nil && !errors.Is(err, io.EOF) {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertDeviceChangeStateRequired(deviceChangeStateParam); err != nil {
+	if err := AssertDeviceStateRequired(deviceStateParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	if err := AssertDeviceChangeStateConstraints(deviceChangeStateParam); err != nil {
+	if err := AssertDeviceStateConstraints(deviceStateParam); err != nil {
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.DeviceChangeStatePost(r.Context(), deviceChangeStateParam, w, r)
+	result, err := c.service.DeviceChangeStatePost(r.Context(), deviceStateParam, w, r)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// DeviceGetOptionsGet - Get device options
+func (c *DeviceAPIController) DeviceGetOptionsGet(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.DeviceGetOptionsGet(r.Context(), w, r)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// DeviceGetStateGet - Get device state
+func (c *DeviceAPIController) DeviceGetStateGet(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.DeviceGetStateGet(r.Context(), w, r)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

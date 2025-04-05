@@ -3,19 +3,17 @@ package database_device
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/go-kivik/kivik"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
-func CreateDevice(ctx context.Context, token string) (*DeviceProfile, error) {
-	uniqueID := fmt.Sprintf("device:%s", token)
-
+func CreateDevice(ctx context.Context) (*DeviceProfile, error) {
 	device := DeviceProfile{
-		ID:        uniqueID,
-		Token:     token,
+		ID:        uuid.New().String(),
+		Token:     uuid.New().String(),
 		State:     ClosedState,
 		CreatedAt: time.Now().Unix(),
 		UpdatedAt: time.Now().Unix(),
@@ -34,7 +32,7 @@ func CreateDevice(ctx context.Context, token string) (*DeviceProfile, error) {
 		Str("rev", rev).
 		Msg("Created Device")
 
-	dbDevice := FindDeviceByToken(ctx, token)
+	dbDevice := FindDeviceByToken(ctx, device.Token)
 	if dbDevice == nil {
 		log.Error().
 			Msg("Couldn't find newly created device")

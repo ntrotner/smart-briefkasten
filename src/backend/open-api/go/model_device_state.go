@@ -10,17 +10,22 @@
 
 package openapi
 
-type OpenStateOptions struct {
+type DeviceState struct {
 	State string `json:"state"`
 
 	// Emit open event
 	EmitOpenEvent bool `json:"emitOpenEvent"`
+
+	// Emit packtrap event
+	EmitPacktrapEvent bool `json:"emitPacktrapEvent"`
 }
 
-// AssertOpenStateOptionsRequired checks if the required fields are not zero-ed
-func AssertOpenStateOptionsRequired(obj OpenStateOptions) error {
+// AssertDeviceStateRequired checks if the required fields are not zero-ed
+func AssertDeviceStateRequired(obj DeviceState) error {
 	elements := map[string]interface{}{
-		"state": obj.State,
+		"state":             obj.State,
+		"emitOpenEvent":     obj.EmitOpenEvent,
+		"emitPacktrapEvent": obj.EmitPacktrapEvent,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {
@@ -31,7 +36,7 @@ func AssertOpenStateOptionsRequired(obj OpenStateOptions) error {
 	return nil
 }
 
-// AssertOpenStateOptionsConstraints checks if the values respects the defined constraints
-func AssertOpenStateOptionsConstraints(obj OpenStateOptions) error {
+// AssertDeviceStateConstraints checks if the values respects the defined constraints
+func AssertDeviceStateConstraints(obj DeviceState) error {
 	return nil
 }

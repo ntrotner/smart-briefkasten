@@ -33,6 +33,8 @@ services:
       - ./environment/dev/database.env
     volumes:
         - db:/opt/couchdb/data
+    ports:
+      - '5984:5984'
     networks:
       - host_network
 volumes:

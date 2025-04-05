@@ -40,9 +40,13 @@ func VerifyJWT(jwtString *string) (*jwt.Token, *JWTContent, error) {
 			log.Error().Int("status", http.StatusUnauthorized).Msg("verify JWT")
 		}
 		log.Error().Int("status", http.StatusBadRequest).Msg("verify JWT")
+
+		return nil, nil, err
 	}
 	if !token.Valid {
 		log.Error().Int("status", http.StatusUnauthorized).Msg("tampered JWT")
+
+		return nil, nil, err
 	}
 
 	return token, content, err

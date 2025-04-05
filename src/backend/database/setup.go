@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"template_backend/common"
 	database_device "template_backend/database/paths/device"
+	database_notification "template_backend/database/paths/notification"
 	"time"
 
 	_ "github.com/go-kivik/couchdb"
@@ -63,9 +64,11 @@ func Connect(ctx context.Context) {
 
 	for _, value := range []string{
 		database_device.DEVICE_DB,
+		database_notification.NOTIFICATION_DB,
 	} {
 		createDatabase(ctx, value)
 	}
 
 	go database_device.SetupDevice(ctx, databases)
+	go database_notification.SetupNotification(ctx, databases)
 }
