@@ -1,8 +1,8 @@
 version: '3.7'
 
 services:
-  backend:
-    container_name: backend
+  backendpost:
+    container_name: backendpost
     build:
       context: .
       dockerfile: ./dockerfiles/backend.Dockerfile
@@ -10,7 +10,7 @@ services:
       - app_env=${docker_env}
     restart: unless-stopped
     networks:
-      - host_network
+      - host_networkpost
     volumes:
       - ./src/backend:/app
     env_file:
@@ -19,9 +19,9 @@ services:
       - '1883:1883'
       - '8080:8080'
     depends_on:
-      - database
-  database:
-    container_name: db
+      - databasepost
+  databasepost:
+    container_name: dbpost
     build:
       context: .
       dockerfile: ./dockerfiles/database.Dockerfile
@@ -32,13 +32,13 @@ services:
     env_file:
       - ./environment/dev/database.env
     volumes:
-        - db:/opt/couchdb/data
+      - dbpost:/opt/couchdb/data
     ports:
       - '5984:5984'
     networks:
-      - host_network
+      - host_networkpost
 volumes:
-  db:
+  dbpost:
 networks:
-  host_network:
+  host_networkpost:
     external: true

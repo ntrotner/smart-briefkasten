@@ -29,7 +29,7 @@ setup-env:
 # TARGET = dev/prod
 run:
 	make clean || true
-	docker network create host_network || true
+	docker network create host_networkpost || true
 	export docker_env=${TARGET} && ${DOCKER_COMPOSE} up --build --remove-orphans --force-recreate
 
 shutdown:
@@ -39,7 +39,7 @@ shutdown:
 clean:
 	make shutdown
 	docker container rm nginx ui backend db
-	docker network rm host_network
+	docker network rm host_networkpost
 
 # OpenAPI
 openapi-generate-backend:
