@@ -21,4 +21,9 @@ export const selectDeviceLoading = createSelector(
 export const selectDeviceError = createSelector(
   selectDeviceFeature,
   (state: DeviceStoreState) => state.error
+);
+
+export const selectStateChangePending = createSelector(
+  selectDeviceFeature,
+  (state: DeviceStoreState) => state.stateChangePending
 ); 

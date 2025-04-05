@@ -58,9 +58,9 @@ ion-col {
 
 .header-container {
     display: flex;
-    align-items: start;
-    flex-direction: column;
-    margin: 1rem 0 0 1rem;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 1rem 1rem 0 1rem;
 
     .title-container {
         display: flex;
@@ -82,7 +82,7 @@ ion-col {
     .badge-container {
         .badge-skeleton-text {
             width: 5rem;
-            height: 1.5rem;
+            height: 1.3rem;
         }
     }
 }
@@ -110,14 +110,14 @@ ion-col {
         }
 
         ion-card-content {
-            font-size: 1rem;
+            font-size: .9rem;
 
             @media screen and (max-width: 480px) {
-                font-size: .9rem;
+                font-size: .8rem;
             }
 
             @media screen and (max-width: 330px) {
-                font-size: .8rem;
+                font-size: .7rem;
             }
         }
         .action-card {
@@ -132,14 +132,14 @@ ion-col {
             margin-left: .5rem;
             
             ion-card-content {
-                padding: .5rem;
+                padding: .3rem;
 
                 @media screen and (max-width: 480px) {
                     padding: .2rem;
                 }
 
                 ion-list {
-                    max-height: 250px;
+                    max-height: 200px;
                     overflow: scroll;
 
                     @media screen and (max-width: 480px) {
@@ -201,4 +201,21 @@ ion-col {
         width: 100%;
         margin-left: .1rem;
     }
+}
+
+.notification-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-actions {
+  display: flex;
+}
+
+// Make unread notifications stand out
+ion-item[color="light"] {
+  --background: rgba(var(--ion-color-primary-rgb), 0.1);
+  --border-radius: 4px;
+  margin-bottom: 2px;
 }

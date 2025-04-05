@@ -1,10 +1,12 @@
 import { ActionReducer, INIT, UPDATE } from '@ngrx/store';
 import { AuthState } from './auth.state';
 import { DeviceStoreState } from '../device/device.state';
+import { NotificationsState } from '../notifications/notifications.state';
 
 export interface AppState {
   auth: AuthState;
   device: DeviceStoreState;
+  notifications: NotificationsState;
 }
 
 export const hydrationMetaReducer = (

@@ -28,5 +28,22 @@ export const deviceReducer = createReducer(
   on(DeviceActions.updateDeviceOptions, (state, { options }) => ({
     ...state,
     options
+  })),
+  // Handle device state change request actions
+  on(DeviceActions.requestDeviceStateChange, (state) => ({
+    ...state,
+    stateChangePending: true,
+    error: null
+  })),
+  on(DeviceActions.requestDeviceStateChangeSuccess, (state, { state: deviceState }) => ({
+    ...state,
+    state: deviceState,
+    stateChangePending: false,
+    error: null
+  })),
+  on(DeviceActions.requestDeviceStateChangeFailure, (state, { error }) => ({
+    ...state,
+    stateChangePending: false,
+    error
   }))
 ); 

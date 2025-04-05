@@ -6,11 +6,13 @@ export interface DeviceStoreState {
   state: DeviceState | null;
   loading: boolean;
   error: string | null;
+  stateChangePending: boolean;
 }
 
 export const initialDeviceState: DeviceStoreState = {
   options: null,
   state: null,
   loading: false,
-  error: null
+  error: null,
+  stateChangePending: false
 }; 

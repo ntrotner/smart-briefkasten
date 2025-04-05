@@ -16,15 +16,6 @@ type ClosedStateOptions struct {
 
 // AssertClosedStateOptionsRequired checks if the required fields are not zero-ed
 func AssertClosedStateOptionsRequired(obj ClosedStateOptions) error {
-	elements := map[string]interface{}{
-		"state": obj.State,
-	}
-	for name, el := range elements {
-		if isZero := IsZeroValue(el); isZero {
-			return &RequiredError{Field: name}
-		}
-	}
-
 	return nil
 }
 

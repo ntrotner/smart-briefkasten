@@ -1,30 +1,37 @@
 @if (iconSize$(); as iconSize) {
 <div class="home-container">
   <div class="header-container">
-    <div class="title-container">
-      @if (deviceOptions$ | async; as deviceOptions) {
-      @if (deviceOptions.name) {
-      <ion-text>
-        <h3>{{ deviceOptions.name }}</h3>
-      </ion-text>
-      } @else {
-      <ion-skeleton-text class="title-skeleton-text" [animated]="true">
-      </ion-skeleton-text>
-      }
-      }
+    <div class="header-left-container">
+      <div class="title-container">
+        @if (deviceOptions$ | async; as deviceOptions) {
+        @if (deviceOptions.name) {
+        <ion-text>
+          <h3>{{ deviceOptions.name }}</h3>
+        </ion-text>
+        } @else {
+        <ion-skeleton-text class="title-skeleton-text" [animated]="true">
+        </ion-skeleton-text>
+        }
+        }
+      </div>
+      <div class="badge-container">
+        @if (deviceState$ | async; as deviceState) {
+        @if (deviceState === DeviceState.open) {
+        <ion-badge color="warning">Open</ion-badge>
+        } @else if (deviceState === DeviceState.closed) {
+        <ion-badge color="primary">Closed</ion-badge>
+        } @else if (deviceState === DeviceState.packtrap) {
+        <ion-badge color="primary">Trap</ion-badge>
+        } @else {
+        <ion-skeleton-text class="badge-skeleton-text" [animated]="true"></ion-skeleton-text>
+        }
+        }
+      </div>
     </div>
-    <div class="badge-container">
-      @if (deviceState$ | async; as deviceState) {
-      @if (deviceState === DeviceState.open) {
-      <ion-badge color="warning">Open</ion-badge>
-      } @else if (deviceState === DeviceState.closed) {
-      <ion-badge color="primary">Closed</ion-badge>
-      } @else if (deviceState === DeviceState.packtrap) {
-      <ion-badge color="primary">Trap</ion-badge>
-      } @else {
-      <ion-skeleton-text class="badge-skeleton-text" [animated]="true"></ion-skeleton-text>
-      }
-      }
+    <div class="header-right-container">
+      <ion-button fill="clear" (click)="refreshDeviceData()" [disabled]="(stateChangePending$ | async) || (selectDeviceLoading$ | async)">
+        <ion-icon name="refresh-outline" [size]="iconSize"></ion-icon>
+      </ion-button>
     </div>
   </div>
   <div class="image-container">
@@ -38,13 +45,25 @@
         </ion-card-header>
         <ion-card-content>
           <div class="action-button-container">
-            <ion-button class="action-button" fill="clear">
+            @if ((deviceState$ | async) === DeviceState.open) {
+            <ion-button class="action-button" fill="clear" (click)="toggleLockState()" [disabled]="stateChangePending$ | async">
+              <ion-icon name="lock-closed-outline" [size]="iconSize"></ion-icon>
+            </ion-button>
+            <ion-text>Lock</ion-text>
+            } @else if ((deviceState$ | async) === DeviceState.closed || (deviceState$ | async) === DeviceState.packtrap) {
+            <ion-button class="action-button" fill="clear" (click)="toggleLockState()" [disabled]="stateChangePending$ | async">
               <ion-icon name="lock-open-outline" [size]="iconSize"></ion-icon>
             </ion-button>
-            <ion-text>Open</ion-text>
+            <ion-text>Unlock</ion-text>
+            } @else {
+            <ion-button class="action-button" fill="clear" disabled>
+              <ion-icon name="lock-open-outline" [size]="iconSize"></ion-icon>
+            </ion-button>
+            <ion-text>Unlock</ion-text>
+            }
           </div>
           <div class="action-button-container">
-            <ion-button class="action-button" fill="clear">
+            <ion-button class="action-button" fill="clear" (click)="setPacktrapState()" [disabled]="(stateChangePending$ | async) || (deviceState$ | async) === DeviceState.packtrap">
               <ion-icon name="file-tray-outline" [size]="iconSize"></ion-icon>
             </ion-button>
             <ion-text>Trap</ion-text>
@@ -53,59 +72,49 @@
       </ion-card>
       <ion-card class="notification-card">
         <ion-card-header>
-          <ion-card-subtitle>Notifications</ion-card-subtitle>
+          <div class="notification-header-container">
+            <ion-card-subtitle>Notifications</ion-card-subtitle>
+            <div class="notification-actions">
+              <ion-button fill="clear" size="small" (click)="refreshNotifications()" [disabled]="notificationsLoading$ | async">
+                <ion-icon name="refresh-outline" slot="icon-only" size="small"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" size="small" (click)="clearAllNotifications()">
+                <ion-icon name="trash-outline" slot="icon-only" size="small"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
         </ion-card-header>
         <ion-card-content>
-
-
-
+          @if (notificationsLoading$ | async) {
+          <div class="notification-loading">
+            <ion-skeleton-text [animated]="true" style="width: 100%; height: 50px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 100%; height: 50px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 100%; height: 50px;"></ion-skeleton-text>
+          </div>
+          } @else {
           <ion-list [inset]="true">
-            <ion-item [button]="false" detail="false">
-              <ion-label>
-                Package Trapped
-              </ion-label>
-              <div class="metadata-end-wrapper" slot="end">
-                <ion-note color="medium">06:12</ion-note>
-              </div>
-            </ion-item>
-            <ion-item [button]="false" detail="false">
-              <ion-label>
-                Closed
-              </ion-label>
-              <div class="metadata-end-wrapper" slot="end">
-                <ion-note color="medium">06:12</ion-note>
-              </div>
-            </ion-item>
-            <ion-item [button]="false" detail="false">
-              <ion-label>
-                Opened
-              </ion-label>
-              <div class="metadata-end-wrapper" slot="end">
-                <ion-note color="medium">06:11</ion-note>
-              </div>
-            </ion-item>
-            <ion-item [button]="false" detail="false">
-              <ion-label>
-                Opened
-              </ion-label>
-              <div class="metadata-end-wrapper" slot="end">
-                <ion-note color="medium">06:11</ion-note>
-              </div>
-            </ion-item>
-            <ion-item [button]="false" detail="false">
-              <ion-label>
-                Opened
-              </ion-label>
-              <div class="metadata-end-wrapper" slot="end">
-                <ion-note color="medium">06:11</ion-note>
-              </div>
-            </ion-item>
-            
+            @if ((notifications$ | async)?.length) {
+              @for (notification of (notifications$ | async); track notification.id) {
+              <ion-item [button]="false" detail="false" 
+                        [color]="notification.read ? '' : 'light'" 
+                        (click)="markAsRead(notification.id)">
+                <ion-label>
+                  {{ notification.message }}
+                </ion-label>
+                <div class="metadata-end-wrapper" slot="end">
+                  <ion-note color="medium">{{ formatTimestamp(notification.createdAt) }}</ion-note>
+                </div>
+              </ion-item>
+              }
+            } @else {
+              <ion-item [button]="false" detail="false">
+                <ion-label color="medium" class="ion-text-center">
+                  No notifications
+                </ion-label>
+              </ion-item>
+            }
           </ion-list>
-
-
-
-
+          }
         </ion-card-content>
       </ion-card>
     </div>

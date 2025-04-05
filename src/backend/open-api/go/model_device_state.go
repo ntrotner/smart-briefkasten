@@ -23,9 +23,7 @@ type DeviceState struct {
 // AssertDeviceStateRequired checks if the required fields are not zero-ed
 func AssertDeviceStateRequired(obj DeviceState) error {
 	elements := map[string]interface{}{
-		"state":             obj.State,
-		"emitOpenEvent":     obj.EmitOpenEvent,
-		"emitPacktrapEvent": obj.EmitPacktrapEvent,
+		"state": obj.State,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

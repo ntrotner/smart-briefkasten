@@ -12,6 +12,8 @@ import { authReducer } from './store/auth';
 import { AuthEffects } from './store/auth';
 import { deviceReducer } from './store/device/device.reducer';
 import { DeviceEffects } from './store/device/device.effects';
+import { notificationsReducer } from './store/notifications/notifications.reducer';
+import { NotificationsEffects } from './store/notifications/notifications.effects';
 import { hydrationMetaReducer } from './store/auth/auth.meta-reducer';
 import { Configuration } from 'src/lib/open-api/configuration';
 import { provideHttpClient } from '@angular/common/http';
@@ -27,11 +29,12 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     StoreModule.forRoot(
       {
         auth: authReducer,
-        device: deviceReducer
+        device: deviceReducer,
+        notifications: notificationsReducer
       },
       { metaReducers: [hydrationMetaReducer] }
     ),
-    EffectsModule.forRoot([AuthEffects, DeviceEffects]),
+    EffectsModule.forRoot([AuthEffects, DeviceEffects, NotificationsEffects]),
     ApiModule.forRoot(() => new Configuration({ basePath: 'http://0.0.0.0:8080' }))
   ],
   providers: [

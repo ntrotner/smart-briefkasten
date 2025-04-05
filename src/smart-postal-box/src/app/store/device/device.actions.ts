@@ -24,4 +24,20 @@ export const updateDeviceState = createAction(
 export const updateDeviceOptions = createAction(
     '[Device] Update Device Options',
     props<{ options: DeviceOptions }>()
+);
+
+// Request state change actions
+export const requestDeviceStateChange = createAction(
+    '[Device] Request Device State Change',
+    props<{ state: DeviceState }>()
+);
+
+export const requestDeviceStateChangeSuccess = createAction(
+    '[Device] Request Device State Change Success',
+    props<{ state: DeviceState }>()
+);
+
+export const requestDeviceStateChangeFailure = createAction(
+    '[Device] Request Device State Change Failure',
+    props<{ error: string }>()
 ); 
