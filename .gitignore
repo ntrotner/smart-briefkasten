@@ -9,3 +9,4 @@ environment/prod/build.env
 build.env
 output
 resources.parameters.json
+src/mqtt-client
