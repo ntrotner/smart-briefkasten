@@ -1,0 +1,26 @@
+<ion-content class="ion-padding">
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Device Token</ion-label>
+      <ion-input
+        [(ngModel)]="credentials"
+        type="text"
+        placeholder="Enter device token or scan QR code"
+        (keyup.enter)="login()"
+      ></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <div class="scan-button-container">
+    <ion-button expand="block" (click)="startScan()" [disabled]="isScanning">
+      <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+      {{ isScanning ? 'Scanning...' : 'Scan QR Code' }}
+    </ion-button>
+  </div>
+
+  <div class="login-button-container">
+    <ion-button expand="block" (click)="login()" [disabled]="!credentials">
+      Login
+    </ion-button>
+  </div>
+</ion-content>

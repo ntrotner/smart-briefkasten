@@ -2,7 +2,7 @@
 <div class="home-container">
   <div class="header-container">
     <div class="title-container">
-      @if (deviceOptions$(); as deviceOptions) {
+      @if (deviceOptions$ | async; as deviceOptions) {
       @if (deviceOptions.name) {
       <ion-text>
         <h3>{{ deviceOptions.name }}</h3>
@@ -14,13 +14,15 @@
       }
     </div>
     <div class="badge-container">
-      @if (deviceState$(); as deviceState) {
-      @if (deviceState.state === 'open') {
+      @if (deviceState$ | async; as deviceState) {
+      @if (deviceState === DeviceState.open) {
       <ion-badge color="warning">Open</ion-badge>
-      } @else if (deviceState.state === 'closed') {
+      } @else if (deviceState === DeviceState.closed) {
       <ion-badge color="primary">Closed</ion-badge>
-      } @else if (deviceState.state === 'packtrap') {
+      } @else if (deviceState === DeviceState.packtrap) {
       <ion-badge color="primary">Trap</ion-badge>
+      } @else {
+      <ion-skeleton-text class="badge-skeleton-text" [animated]="true"></ion-skeleton-text>
       }
       }
     </div>

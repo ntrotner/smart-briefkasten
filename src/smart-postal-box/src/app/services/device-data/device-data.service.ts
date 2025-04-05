@@ -1,36 +1,26 @@
-import { Injectable, signal } from '@angular/core';
-import { DeviceOptions, DeviceState } from 'src/lib/open-api';
+import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { selectDeviceOptions, selectDeviceStateData } from '../../store/device/device.selectors';
+import * as DeviceActions from '../../store/device/device.actions';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceDataService {
-  /**
-   * Device options
-   */
-  private deviceOptions = signal<DeviceOptions>({});
-  /**
-   * Public Device options
-   */
-  public deviceOptions$ = this.deviceOptions.asReadonly();
+  public deviceOptions$ = this.store.select(selectDeviceOptions);
+  public deviceState$ = this.store.select(selectDeviceStateData);
 
-  /**
-   * Device data
-   */
-  private deviceState = signal<DeviceState>({
-    state: 'closed',
-  });
+  constructor(private store: Store) {}
 
-  /**
-   * Public Device state
-   */
-  public deviceState$ = this.deviceState.asReadonly();
+  loadDeviceData() {
+    this.store.dispatch(DeviceActions.loadDeviceData());
+  }
 
-  constructor() {
-    setTimeout(() => {
-      this.deviceOptions.set({
-        name: 'Smart Postal Box'
-      });
-    }, 2000);
-   }
+  updateDeviceState(state: any) {
+    this.store.dispatch(DeviceActions.updateDeviceState({ state }));
+  }
+
+  updateDeviceOptions(options: any) {
+    this.store.dispatch(DeviceActions.updateDeviceOptions({ options }));
+  }
 }

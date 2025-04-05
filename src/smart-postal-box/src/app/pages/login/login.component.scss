@@ -1,0 +1,32 @@
+ion-content {
+  --background: var(--ion-color-light);
+}
+
+ion-list {
+  background: transparent;
+  margin-bottom: 2rem;
+}
+
+ion-item {
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.scan-button-container,
+.login-button-container {
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+ion-button {
+  --border-radius: 8px;
+  height: 48px;
+  font-weight: 600;
+}

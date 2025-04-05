@@ -50,12 +50,13 @@ func NewRouter(routers ...Router) *mux.Router {
 		for name, route := range api.Routes() {
 			var handler http.HandlerFunc
 			handler = route.HandlerFunc
+			handler = CORS(handler)
 			handler = Logger(handler, name)
 			handler = Compress(handler)
 			handler = MaxBytes(handler)
 
 			router.
-				Methods(route.Method).
+				Methods(route.Method, "OPTIONS").
 				Path(route.Pattern).
 				Name(name).
 				Handler(handler)
