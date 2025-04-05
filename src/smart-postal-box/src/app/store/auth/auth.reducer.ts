@@ -4,15 +4,17 @@ import * as AuthActions from './auth.actions';
 
 export const authReducer = createReducer(
   initialAuthState,
-  on(AuthActions.loginDevice, (state) => ({
+  on(AuthActions.loginDevice, (state, { baseUrl }) => ({
     ...state,
-    isLoggedIn: false
+    isLoggedIn: false,
+    baseUrl: baseUrl || state.baseUrl
   })),
-  on(AuthActions.loginDeviceSuccess, (state, { deviceToken, deviceJwt, lastLoginTime }) => ({
+  on(AuthActions.loginDeviceSuccess, (state, { deviceToken, deviceJwt, baseUrl, lastLoginTime }) => ({
     ...state,
     isLoggedIn: true,
     deviceToken,
     deviceJwt,
+    baseUrl,
     lastLoginTime
   })),
   on(AuthActions.loginDeviceFailure, (state) => ({
@@ -25,8 +27,9 @@ export const authReducer = createReducer(
     ...state,
     isLoggedIn: false
   })),
-  on(AuthActions.logoutDeviceSuccess, () => ({
-    ...initialAuthState
+  on(AuthActions.logoutDeviceSuccess, (state) => ({
+    ...initialAuthState,
+    baseUrl: state.baseUrl
   })),
   on(AuthActions.setDeviceJwt, (state, { deviceJwt }) => ({
     ...state,

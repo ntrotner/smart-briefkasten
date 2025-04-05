@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit, signal } from '@angular/core';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonIcon, IonItem, IonLabel, IonList, IonNote, IonSkeletonText, IonText, ToastController } from '@ionic/angular/standalone';
 import { DeviceDataService } from 'src/app/services/device-data/device-data.service';
 import { OpenStateOptions } from 'src/lib/open-api/model/openStateOptions';
@@ -20,7 +20,6 @@ import { Subject } from 'rxjs';
   styleUrls: ['./home.component.scss'],
   imports: [
     AsyncPipe,
-    DatePipe,
     IonText,
     IonSkeletonText,
     IonBadge,

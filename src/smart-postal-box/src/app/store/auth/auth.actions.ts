@@ -2,12 +2,12 @@ import { createAction, props } from '@ngrx/store';
 
 export const loginDevice = createAction(
   '[Auth] Login Device',
-  props<{ deviceToken: string }>()
+  props<{ deviceToken: string; baseUrl?: string }>()
 );
 
 export const loginDeviceSuccess = createAction(
   '[Auth] Login Device Success',
-  props<{ deviceToken: string; deviceJwt: string; lastLoginTime: number }>()
+  props<{ deviceToken: string; deviceJwt: string; baseUrl: string; lastLoginTime: number }>()
 );
 
 export const loginDeviceFailure = createAction(

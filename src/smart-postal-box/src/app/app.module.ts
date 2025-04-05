@@ -19,6 +19,7 @@ import { Configuration } from 'src/lib/open-api/configuration';
 import { provideHttpClient } from '@angular/common/http';
 import { ApiModule } from 'src/lib/open-api/api.module';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { BaseUrlInterceptor } from './interceptors/base-url.interceptor';
 
 @NgModule({
   declarations: [AppComponent],
@@ -35,11 +36,11 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
       { metaReducers: [hydrationMetaReducer] }
     ),
     EffectsModule.forRoot([AuthEffects, DeviceEffects, NotificationsEffects]),
-    ApiModule.forRoot(() => new Configuration({ basePath: 'http://0.0.0.0:8080' }))
+    ApiModule.forRoot(() => new Configuration())
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    provideHttpClient(withInterceptors([AuthInterceptor]))
+    provideHttpClient(withInterceptors([BaseUrlInterceptor, AuthInterceptor]))
   ],
   bootstrap: [AppComponent],
 })

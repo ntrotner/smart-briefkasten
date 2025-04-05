@@ -4,7 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Router } from '@angular/router';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
-import { IonButton, IonContent, IonInput, IonItem, IonLabel, IonList, IonIcon } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonIcon,
+} from '@ionic/angular/standalone';
 import * as AuthActions from '../../store/auth/auth.actions';
 import { QrCodeContract } from './contract';
 import { selectIsLoggedIn } from '../../store/auth/auth.selectors';
@@ -24,7 +32,7 @@ import { Subject, takeUntil } from 'rxjs';
     IonLabel,
     IonInput,
     IonButton,
-    IonIcon
+    IonIcon,
   ]
 })
 export class LoginComponent implements OnInit, OnDestroy {
@@ -37,7 +45,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private router: Router
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.checkPermissions();
     this.store.select(selectIsLoggedIn)
       .pipe(takeUntil(this.destroy$))
@@ -93,7 +101,12 @@ export class LoginComponent implements OnInit, OnDestroy {
       const jsonValue = (JSON.parse(decodedValue) || {}) as QrCodeContract;
 
       if (jsonValue.deviceToken) {
-        this.store.dispatch(AuthActions.loginDevice({ deviceToken: jsonValue.deviceToken }));
+        // Get baseUrl from QR code if available
+        const baseUrl = jsonValue.baseUrl;
+        this.store.dispatch(AuthActions.loginDevice({
+          deviceToken: jsonValue.deviceToken,
+          baseUrl
+        }));
       }
     }
   }

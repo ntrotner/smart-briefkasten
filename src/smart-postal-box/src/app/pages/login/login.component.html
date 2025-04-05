@@ -1,26 +1,37 @@
 <ion-content class="ion-padding">
-  <ion-list>
-    <ion-item>
-      <ion-label position="stacked">Device Token</ion-label>
-      <ion-input
-        [(ngModel)]="credentials"
-        type="text"
-        placeholder="Enter device token or scan QR code"
-        (keyup.enter)="login()"
-      ></ion-input>
-    </ion-item>
-  </ion-list>
+  <div class="login-container">
+    <div class="logo-container">
+      <h1>Smart Postal Box</h1>
+    </div>
 
-  <div class="scan-button-container">
-    <ion-button expand="block" (click)="startScan()" [disabled]="isScanning">
-      <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-      {{ isScanning ? 'Scanning...' : 'Scan QR Code' }}
-    </ion-button>
-  </div>
+    <div class="card-container">
+      <div class="login-card">
+        <h2><ion-icon name="lock-closed-outline"></ion-icon> Device Login</h2>
 
-  <div class="login-button-container">
-    <ion-button expand="block" (click)="login()" [disabled]="!credentials">
-      Login
-    </ion-button>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Access Code</ion-label>
+            <ion-input [(ngModel)]="credentials" type="text" placeholder="Enter device token or scan QR code"
+              (keyup.enter)="login()"></ion-input>
+          </ion-item>
+        </ion-list>
+
+        <div class="button-container">
+          <ion-button expand="block" (click)="startScan()" [disabled]="isScanning" class="scan-button">
+            <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+            {{ isScanning ? 'Scanning...' : 'Scan QR Code' }}
+          </ion-button>
+
+          <ion-button expand="block" (click)="login()" [disabled]="!credentials" color="primary" class="login-button">
+            <ion-icon name="key-outline" slot="start"></ion-icon>
+            Connect to Device
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Scan the QR code on your postal box to connect</p>
+    </div>
   </div>
 </ion-content>

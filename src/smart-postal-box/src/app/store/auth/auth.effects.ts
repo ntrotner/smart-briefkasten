@@ -13,18 +13,17 @@ export class AuthEffects {
   loginDevice$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.loginDevice),
-      mergeMap(({ deviceToken }) =>
+      mergeMap(({ deviceToken, baseUrl }) =>
         this.authService.loginPost({ token: deviceToken }).pipe(
           map(response => {
             const deviceJwt = typeof this.authService.configuration.accessToken === 'function'
               ? this.authService.configuration.accessToken()
               : this.authService.configuration.accessToken;
 
-            // For now, we'll use the device token as the JWT since the API response doesn't include it
-            // TODO: Update this when the API response includes the JWT
             return AuthActions.loginDeviceSuccess({
               deviceToken,
               deviceJwt: deviceJwt || '',
+              baseUrl: baseUrl || 'http://0.0.0.0:8080', // Default fallback if not provided
               lastLoginTime: Date.now()
             });
           }),
@@ -44,8 +43,6 @@ export class AuthEffects {
       )
     )
   );
-
-
 
   loadDeviceData$ = createEffect(() =>
     this.actions$.pipe(

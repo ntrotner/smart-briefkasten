@@ -9,13 +9,6 @@ import { Router } from '@angular/router';
 export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
     const store = inject(Store);
     const router = inject(Router);
-    // const authHeader = req.headers.get('Authorization');
-
-    // if (authHeader && authHeader.startsWith('Bearer ')) {
-    //     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    //     store.dispatch(AuthActions.setDeviceJwt({ deviceJwt: token }));
-    // }
-
     return next(req).pipe(
         tap(response => {
             if (response instanceof HttpResponse) {
