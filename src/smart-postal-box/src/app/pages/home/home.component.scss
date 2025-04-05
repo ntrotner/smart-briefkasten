@@ -1,0 +1,198 @@
+.home-container {
+
+    .header-container {
+        max-height: 10%;
+    }
+
+    .image-container {
+        max-height: 15%;
+    }
+
+    .action-notification-container {
+        max-height: 35%;
+    }
+
+    .device-customization-container {
+        max-height: 30%;
+    }
+
+    @media screen and (max-width: 480px) {
+        .image-container {
+            max-height: 15%;
+        }
+   
+        .action-notification-container {
+            max-height: 40%;
+        }
+    
+        .device-customization-container {
+            max-height: 35%;
+        }
+    }
+
+    @media screen and (max-width: 330px) {
+        .header-container {
+            max-height: 7%;
+        }
+
+        .image-container {
+            max-height: 7%;
+        }
+   
+        .action-notification-container {
+            max-height: 40%;
+        }
+    
+        .device-customization-container {
+            max-height: 35%;
+        }
+    }
+}
+
+ion-col {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-container {
+    display: flex;
+    align-items: start;
+    flex-direction: column;
+    margin: 1rem 0 0 1rem;
+
+    .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: left;
+        width: 100%;
+        margin-bottom: .5rem;
+
+        h3 {
+            margin: .1rem;
+        }
+
+        ion-skeleton-text {
+            width: 12rem;
+            height: 1.5rem;
+        }
+    }
+
+}
+
+.image-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-notification-container {
+    .card-container {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+
+        ion-card-header {
+            padding-bottom: .6rem;
+
+            @media screen and (max-width: 330px) {
+                padding-bottom: .1rem;
+            }
+        }
+
+        ion-card-content {
+            font-size: 1rem;
+
+            @media screen and (max-width: 480px) {
+                font-size: .9rem;
+            }
+
+            @media screen and (max-width: 330px) {
+                font-size: .8rem;
+            }
+        }
+        .action-card {
+            width: 35%;
+            margin-bottom: 0;
+            margin-right: .5rem;
+        }
+
+        .notification-card {
+            width: 65%;
+            margin-bottom: 0;
+            margin-left: .5rem;
+            
+            ion-card-content {
+                padding: .5rem;
+
+                @media screen and (max-width: 480px) {
+                    padding: .2rem;
+                }
+
+                ion-list {
+                    max-height: 250px;
+                    overflow: scroll;
+
+                    @media screen and (max-width: 480px) {
+                        max-height: 150px;
+                    }
+                }
+            }
+
+            ion-list {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        .action-card,
+        .notification-card {
+            ion-card-subtitle {
+                font-size: 1rem;
+                font-weight: bold;
+
+                @media screen and (max-width: 330px) {
+                    font-size: .7rem;
+                }
+            }
+        }
+
+        .action-button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            ion-button {
+                margin-bottom: -.1rem;
+            }
+
+            &:first-child {
+                margin-bottom: .3rem;
+            }
+        }
+    }
+}
+
+.device-customization-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+
+    ion-text {
+        margin: 1rem 0 0 1rem;
+
+        @media screen and (max-width: 480px) {
+            margin: .6rem 0 -.5rem 1rem;
+
+        }
+    }
+
+    ion-list {
+        width: 100%;
+        margin-left: .1rem;
+    }
+}

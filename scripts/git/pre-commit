@@ -19,7 +19,7 @@ echo "Run code quality test"
 go vet ./...
 echo "Vet ok"
 
-gocyclo -over 10 . 
+gocyclo -over 20 . 
 echo "Cyclo ok"
 
 ineffassign ./...

@@ -1,0 +1,127 @@
+@if (iconSize$(); as iconSize) {
+<div class="home-container">
+  <div class="header-container">
+    <div class="title-container">
+      @if (deviceOptions$(); as deviceOptions) {
+      @if (deviceOptions.name) {
+      <ion-text>
+        <h3>{{ deviceOptions.name }}</h3>
+      </ion-text>
+      } @else {
+      <ion-skeleton-text class="title-skeleton-text" [animated]="true">
+      </ion-skeleton-text>
+      }
+      }
+    </div>
+    <div class="badge-container">
+      @if (deviceState$(); as deviceState) {
+      @if (deviceState.state === 'open') {
+      <ion-badge color="warning">Open</ion-badge>
+      } @else if (deviceState.state === 'closed') {
+      <ion-badge color="primary">Closed</ion-badge>
+      } @else if (deviceState.state === 'packtrap') {
+      <ion-badge color="primary">Trap</ion-badge>
+      }
+      }
+    </div>
+  </div>
+  <div class="image-container">
+    <img src="assets/parcelbin.webp" height="100%" alt="Parcel Bin" class="parcel-bin-image">
+  </div>
+  <div class="action-notification-container">
+    <div class="card-container">
+      <ion-card class="action-card">
+        <ion-card-header>
+          <ion-card-subtitle>Actions</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="action-button-container">
+            <ion-button class="action-button" fill="clear">
+              <ion-icon name="lock-open-outline" [size]="iconSize"></ion-icon>
+            </ion-button>
+            <ion-text>Open</ion-text>
+          </div>
+          <div class="action-button-container">
+            <ion-button class="action-button" fill="clear">
+              <ion-icon name="file-tray-outline" [size]="iconSize"></ion-icon>
+            </ion-button>
+            <ion-text>Trap</ion-text>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="notification-card">
+        <ion-card-header>
+          <ion-card-subtitle>Notifications</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+
+
+
+          <ion-list [inset]="true">
+            <ion-item [button]="false" detail="false">
+              <ion-label>
+                Package Trapped
+              </ion-label>
+              <div class="metadata-end-wrapper" slot="end">
+                <ion-note color="medium">06:12</ion-note>
+              </div>
+            </ion-item>
+            <ion-item [button]="false" detail="false">
+              <ion-label>
+                Closed
+              </ion-label>
+              <div class="metadata-end-wrapper" slot="end">
+                <ion-note color="medium">06:12</ion-note>
+              </div>
+            </ion-item>
+            <ion-item [button]="false" detail="false">
+              <ion-label>
+                Opened
+              </ion-label>
+              <div class="metadata-end-wrapper" slot="end">
+                <ion-note color="medium">06:11</ion-note>
+              </div>
+            </ion-item>
+            <ion-item [button]="false" detail="false">
+              <ion-label>
+                Opened
+              </ion-label>
+              <div class="metadata-end-wrapper" slot="end">
+                <ion-note color="medium">06:11</ion-note>
+              </div>
+            </ion-item>
+            <ion-item [button]="false" detail="false">
+              <ion-label>
+                Opened
+              </ion-label>
+              <div class="metadata-end-wrapper" slot="end">
+                <ion-note color="medium">06:11</ion-note>
+              </div>
+            </ion-item>
+            
+          </ion-list>
+
+
+
+
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+  <div class="device-customization-container">
+    <ion-text>
+      <h4>My Device</h4>
+    </ion-text>
+    <ion-list [inset]="true">
+      <ion-item [button]="true">
+        <ion-icon color="primary" slot="start" name="settings-outline" [size]="iconSize"></ion-icon>
+        <ion-label>Settings</ion-label>
+      </ion-item>
+      <ion-item [button]="true">
+        <ion-icon color="primary" slot="start" name="help-circle-outline" [size]="iconSize"></ion-icon>
+        <ion-label>Support</ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</div>
+}

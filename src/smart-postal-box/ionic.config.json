@@ -1,0 +1,7 @@
+{
+  "name": "Smart Postal Box",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

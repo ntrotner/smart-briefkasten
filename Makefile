@@ -57,7 +57,7 @@ openapi-generate-backend:
 
 openapi-generate-ui:
 	docker run --rm --user 1000:1000 \
-			-v ${PWD}/src/ui/src/lib/open-api:/local \
+			-v ${PWD}/src/smart-postal-box/src/lib/open-api:/local \
 			-v ${PWD}/shared:/shared \
 			openapitools/openapi-generator-cli generate \
 			-i /shared/openApi.yaml \
