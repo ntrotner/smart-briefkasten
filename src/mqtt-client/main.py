@@ -14,6 +14,13 @@ from typing import Dict, Any, Callable, Optional
 import paho.mqtt.client as mqtt
 import requests
 
+# Optional imports for Raspberry Pi GPIO
+try:
+    import RPi.GPIO as GPIO
+    RPI_AVAILABLE = True
+except ImportError:
+    RPI_AVAILABLE = False
+    
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -33,7 +40,163 @@ DEFAULT_CONFIG = {
     'device_token': "",
     'reconnect_delay_min': 1,     # Minimum delay between reconnection attempts (seconds)
     'reconnect_delay_max': 120,   # Maximum delay between reconnection attempts (seconds)
+    # Hardware configuration for Raspberry Pi
+    'hardware_enabled': False,    # Whether to enable hardware control
+    'stepper_pins': [17, 18, 27, 22],  # Default GPIO pins for stepper motor
+    'hall_sensor_pin': 23,        # Default GPIO pin for Hall effect sensor
+    'lock_open_steps': 200,       # Number of steps to open the lock
+    'lock_close_steps': 200,      # Number of steps to close the lock
+    'step_delay': 0.005,          # Delay between stepper motor steps (seconds)
 }
+
+class HardwareController:
+    """Controls Raspberry Pi hardware for the smart postal box"""
+    
+    def __init__(self, config, mqtt_client=None):
+        self.config = config
+        self.mqtt_client = mqtt_client
+        self.enabled = config.get('hardware_enabled', False) and RPI_AVAILABLE
+        self.box_open = False
+        self.lock_open = False
+        
+        if self.enabled:
+            try:
+                self._setup_gpio()
+                logger.info("Hardware controller initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize hardware controller: {e}")
+                self.enabled = False
+        else:
+            if not RPI_AVAILABLE:
+                logger.info("RPi.GPIO not available, hardware control disabled")
+            else:
+                logger.info("Hardware control disabled in configuration")
+    
+    def _setup_gpio(self):
+        """Set up GPIO pins for stepper motor and hall effect sensor"""
+        # Set up GPIO using BCM numbering
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        
+        # Set up stepper motor pins as outputs
+        for pin in self.config['stepper_pins']:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.LOW)
+        
+        # Set up Hall effect sensor pin as input with pull-up resistor
+        GPIO.setup(self.config['hall_sensor_pin'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        
+        # Add event detection for the Hall effect sensor
+        GPIO.add_event_detect(
+            self.config['hall_sensor_pin'], 
+            GPIO.BOTH, 
+            callback=self._hall_sensor_callback,
+            bouncetime=300
+        )
+        
+        # Initial state check
+        self._check_box_state()
+    
+    def _hall_sensor_callback(self, channel):
+        """Callback for Hall effect sensor state change"""
+        self._check_box_state()
+    
+    def _check_box_state(self):
+        """Check the current state of the box using the Hall effect sensor"""
+        if not self.enabled:
+            return
+            
+        # Read the Hall effect sensor
+        # Typically, when a magnet is near, the sensor will be LOW
+        # When the box is open (magnet away), the sensor will be HIGH
+        new_state = GPIO.input(self.config['hall_sensor_pin']) == GPIO.HIGH
+        
+        if new_state != self.box_open:
+            self.box_open = new_state
+            logger.info(f"Box {'open' if self.box_open else 'closed'} detected")
+            
+            if self.mqtt_client:
+                # Publish state change
+                self.mqtt_client.publish("devices/notifications", {
+                    "id": self.config['device_id'],
+                    "type": "box_state",
+                    "state": "open" if self.box_open else "closed",
+                    "timestamp": int(time.time())
+                })
+    
+    def open_lock(self):
+        """Open the lock using the stepper motor"""
+        if not self.enabled:
+            logger.info("Hardware control disabled, simulating lock open")
+            self.lock_open = True
+            return True
+            
+        try:
+            logger.info("Opening lock")
+            self._control_stepper(self.config['lock_open_steps'], clockwise=True)
+            self.lock_open = True
+            return True
+        except Exception as e:
+            logger.error(f"Failed to open lock: {e}")
+            return False
+    
+    def close_lock(self):
+        """Close the lock using the stepper motor"""
+        if not self.enabled:
+            logger.info("Hardware control disabled, simulating lock close")
+            self.lock_open = False
+            return True
+            
+        try:
+            logger.info("Closing lock")
+            self._control_stepper(self.config['lock_close_steps'], clockwise=False)
+            self.lock_open = False
+            return True
+        except Exception as e:
+            logger.error(f"Failed to close lock: {e}")
+            return False
+    
+    def open_packtrap(self):
+        """Open the lock and close as soon as a close signal is received"""
+        if not self.enabled:
+            logger.info("Hardware control disabled, simulating packtrap open")
+            return True
+        
+        self.open_lock()
+        GPIO.add_event_detect(
+            self.config['hall_sensor_pin'], 
+            GPIO.RISING, 
+            callback=self._close_packtrap_callback,
+            bouncetime=300
+        )
+
+    def _control_stepper(self, steps, clockwise=True):
+        """Control the stepper motor"""
+        # Stepper motor sequence for a 4-step sequence (full step)
+        sequence = [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ]
+        
+        if not clockwise:
+            sequence.reverse()
+        
+        for _ in range(steps):
+            for step in sequence:
+                for i, pin in enumerate(self.config['stepper_pins']):
+                    GPIO.output(pin, step[i])
+                time.sleep(self.config['step_delay'])
+    
+    def cleanup(self):
+        """Clean up GPIO resources"""
+        if self.enabled:
+            try:
+                GPIO.cleanup()
+                logger.info("GPIO resources cleaned up")
+            except Exception as e:
+                logger.error(f"Failed to clean up GPIO resources: {e}")
 
 class DeviceState:
     """Class to manage device state"""
@@ -78,6 +241,22 @@ class DeviceState:
         """Set the MQTT client reference"""
         self.mqtt_client = mqtt_client
         
+    def change_state(self, state: str):           
+        logger.info(f"Changing state to {state}")
+        # Pass to hardware controller if available
+        if hasattr(self.mqtt_client, 'hardware_controller'):
+            hardware = self.mqtt_client.hardware_controller
+            
+            if state == "open" and hardware:
+                hardware.open_lock()
+            
+            elif state == "closed" and hardware:
+                hardware.close_lock()
+            
+            elif state == "packtrap":
+                hardware.open_lock()
+
+
     def handle_options(self, topic, payload):
         """Handle options messages"""
         if self._is_update_for_this_device(payload):
@@ -109,11 +288,14 @@ class DeviceState:
             
             if isinstance(payload, dict):
                 self.update(payload)
+                self.change_state(payload['state'])
             elif isinstance(payload, str):
                 # Try to parse JSON string
                 try:
                     state_data = json.loads(payload)
                     self.update(state_data)
+                    logger.info(f"State data: {state_data}")
+                    self.change_state(state_data)
                 except json.JSONDecodeError:
                     logger.error(f"Failed to parse state data: {payload}")
             else:
@@ -198,6 +380,9 @@ class PostalBoxMQTTClient:
             "devices/options",
         ]
         
+        # Initialize hardware controller if enabled
+        self.hardware_controller = HardwareController(self.config, self)
+        
     def get_auth_token(self):
         response = requests.post(f"{self.config['backend_url']}/login", json={"token": self.config['device_token']})
         return response.headers["Authorization"].split(" ")[1]
@@ -233,6 +418,11 @@ class PostalBoxMQTTClient:
         self.running = False
         self.client.loop_stop()
         self.client.disconnect()
+        
+        # Clean up hardware resources
+        if hasattr(self, 'hardware_controller'):
+            self.hardware_controller.cleanup()
+            
         logger.info("MQTT client stopped")
         
     def subscribe(self, topic: str, qos: int = None):
@@ -418,6 +608,17 @@ config = {
     'device_id': os.environ.get('DEVICE_ID', DEFAULT_CONFIG['client_id']),
     'backend_url': os.environ.get('BACKEND_URL', DEFAULT_CONFIG['backend_url']),
     'device_token': os.environ.get('DEVICE_TOKEN', DEFAULT_CONFIG['device_token']),
+    'hardware_enabled': os.environ.get('HARDWARE_ENABLED', '').lower() in ('true', '1', 'yes'),
+    'stepper_pins': [
+        int(os.environ.get('STEPPER_PIN_1', DEFAULT_CONFIG['stepper_pins'][0])),
+        int(os.environ.get('STEPPER_PIN_2', DEFAULT_CONFIG['stepper_pins'][1])),
+        int(os.environ.get('STEPPER_PIN_3', DEFAULT_CONFIG['stepper_pins'][2])),
+        int(os.environ.get('STEPPER_PIN_4', DEFAULT_CONFIG['stepper_pins'][3])),
+    ],
+    'hall_sensor_pin': int(os.environ.get('HALL_SENSOR_PIN', DEFAULT_CONFIG['hall_sensor_pin'])),
+    'lock_open_steps': int(os.environ.get('LOCK_OPEN_STEPS', DEFAULT_CONFIG['lock_open_steps'])),
+    'lock_close_steps': int(os.environ.get('LOCK_CLOSE_STEPS', DEFAULT_CONFIG['lock_close_steps'])),
+    'step_delay': float(os.environ.get('STEP_DELAY', DEFAULT_CONFIG['step_delay'])),
 }
 
 def main():
