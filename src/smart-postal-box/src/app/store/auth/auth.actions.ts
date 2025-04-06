@@ -25,5 +25,5 @@ export const logoutDeviceSuccess = createAction(
 
 export const setDeviceJwt = createAction(
   '[Auth] Set Device JWT',
-  props<{ deviceJwt: string }>()
+  props<{ deviceJwt: string | null }>()
 ); 

@@ -16,11 +16,6 @@ export const BaseUrlInterceptor: HttpInterceptorFn = (req, next) => {
             const relativeUrl = new URL(req.url).pathname.replace(/^(\/\/)/, "");
             const url = new URL(relativeUrl, baseUrl);
             
-            console.log(baseUrl);
-            console.log(relativeUrl);
-            console.log(url);
-            console.log(url.toString());
-            
             // Clone the request with the new URL
             const modifiedReq = req.clone({
                 url: url.toString()

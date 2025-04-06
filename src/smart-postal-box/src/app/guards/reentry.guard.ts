@@ -16,16 +16,16 @@ export const reentryGuard: CanActivateFn = (route, state) => {
         take(1),
         switchMap(([isLoggedIn, authState]) => {
             if (isLoggedIn && authState.lastLoginTime) {
-                console.log('authState', authState);
                 const lastLoginTime = new Date(authState.lastLoginTime);
                 const currentTime = new Date();
                 const timeDifference = currentTime.getTime() - lastLoginTime.getTime();
                 const minutesDifference = timeDifference / (1000 * 60);
-                if (minutesDifference < 10) {
+                if (minutesDifference < 5) {
                     store.dispatch(setDeviceJwt({ deviceJwt: authState.deviceJwt! }));
                     return of(true);
                 } else {
-                    store.dispatch(loginDevice({ deviceToken: authState.deviceToken! }));
+                    store.dispatch(setDeviceJwt({ deviceJwt: null }));
+                    store.dispatch(loginDevice({ deviceToken: authState.deviceToken!, baseUrl: authState.baseUrl! }));
                     return store.select(selectAuthState).pipe(
                         filter(({deviceJwt}) => deviceJwt !== null),
                         map(() => true)

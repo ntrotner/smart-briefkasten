@@ -15,7 +15,7 @@ export const authReducer = createReducer(
     deviceToken,
     deviceJwt,
     baseUrl,
-    lastLoginTime
+    lastLoginTime: Date.now()
   })),
   on(AuthActions.loginDeviceFailure, (state) => ({
     ...state,
