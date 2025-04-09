@@ -353,8 +353,7 @@ class PostalBoxMQTTClient:
             transport="websockets"
         )
         self.client.ws_set_options(path="/")
-        self.client.tls_set()
-        
+
         # Enable automatic reconnect with exponential backoff
         self.client.reconnect_delay_set(
             min_delay=self.config['reconnect_delay_min'],
@@ -384,7 +383,12 @@ class PostalBoxMQTTClient:
         self.hardware_controller = HardwareController(self.config, self)
         
     def get_auth_token(self):
-        response = requests.post(f"{self.config['backend_url']}/login", json={"token": self.config['device_token']})
+        # Disable SSL verification for requests
+        response = requests.post(
+            f"{self.config['backend_url']}/login", 
+            json={"token": self.config['device_token']},
+            verify=False
+        )
         return response.headers["Authorization"].split(" ")[1]
     
     def connect(self) -> bool:
