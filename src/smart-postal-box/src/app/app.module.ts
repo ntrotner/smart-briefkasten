@@ -20,6 +20,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { ApiModule } from 'src/lib/open-api/api.module';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { BaseUrlInterceptor } from './interceptors/base-url.interceptor';
+import { ownershipReducer } from './store/ownership/ownership.reducer';
+import { OwnershipEffects } from './store/ownership/ownership.effects';
 
 @NgModule({
   declarations: [AppComponent],
@@ -31,11 +33,12 @@ import { BaseUrlInterceptor } from './interceptors/base-url.interceptor';
       {
         auth: authReducer,
         device: deviceReducer,
-        notifications: notificationsReducer
+        notifications: notificationsReducer,
+        ownership: ownershipReducer
       },
       { metaReducers: [hydrationMetaReducer] }
     ),
-    EffectsModule.forRoot([AuthEffects, DeviceEffects, NotificationsEffects]),
+    EffectsModule.forRoot([AuthEffects, DeviceEffects, NotificationsEffects, OwnershipEffects]),
     ApiModule.forRoot(() => new Configuration())
   ],
   providers: [

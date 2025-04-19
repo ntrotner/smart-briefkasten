@@ -58,3 +58,14 @@ python main.py
 ## Development
 
 To extend this client, you can add custom command handlers in the `_handle_command` method or register new topic handlers using the `register_handler` method. 
+
+# Setup Raspberry Pi OS Lite
+1. Run `rpi-imager`
+2. OS Customizations
+    1. username + password
+    2. Setup WLAN
+3. Copy systemd services to `/rootfs/etc/systemd/`
+4. Adjust paths and user
+5. Run
+    1. `sudo apt install python3-paho-mqtt`
+    2. `sudo apt install python3-rpi.gpio`

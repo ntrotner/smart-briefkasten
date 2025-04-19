@@ -26,4 +26,9 @@ export const logoutDeviceSuccess = createAction(
 export const setDeviceJwt = createAction(
   '[Auth] Set Device JWT',
   props<{ deviceJwt: string | null }>()
+);
+
+// Action to reset state for adding a new device
+export const resetForNewDevice = createAction(
+  '[Auth] Reset For New Device'
 ); 

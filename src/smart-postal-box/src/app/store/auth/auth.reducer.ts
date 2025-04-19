@@ -34,5 +34,8 @@ export const authReducer = createReducer(
   on(AuthActions.setDeviceJwt, (state, { deviceJwt }) => ({
     ...state,
     deviceJwt
+  })),
+  on(AuthActions.resetForNewDevice, () => ({
+    ...initialAuthState
   }))
 ); 

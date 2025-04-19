@@ -1,0 +1,19 @@
+[Unit]
+Description=Smart Postal Box MQTT Client
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/denos/mqtt-client
+ExecStart=/bin/bash /home/denos/mqtt-client/start.sh
+Restart=on-failure
+RestartSec=10
+# Standard output and error logs go to journald
+StandardOutput=journal
+StandardError=journal
+# Set syslog identifier for better filtering
+SyslogIdentifier=smart-briefkasten
+
+[Install]
+WantedBy=multi-user.target 

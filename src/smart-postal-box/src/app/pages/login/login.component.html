@@ -4,9 +4,30 @@
       <h1>Smart Postal Box</h1>
     </div>
 
+    <!-- Show saved devices if available -->
+    <div class="card-container" *ngIf="hasDevices">
+      <div class="login-card">
+        <h2><ion-icon name="save-outline"></ion-icon> Saved Devices</h2>
+        
+        <ion-list>
+          <ion-item *ngFor="let device of devices" button (click)="loginWithDevice(device)" detail>
+            <ion-icon name="mail-outline" slot="start"></ion-icon>
+            <ion-label>
+              <h3>{{ device.name }}</h3>
+              <p>Last connected: {{ device.lastConnected | date:'short' }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        
+        <div class="divider">
+          <span>or add a new device</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card-container">
       <div class="login-card">
-        <h2><ion-icon name="lock-closed-outline"></ion-icon> Device Login</h2>
+        <h2><ion-icon name="lock-closed-outline"></ion-icon> {{ hasDevices ? 'Add New Device' : 'Device Login' }}</h2>
 
         <ion-list>
           <ion-item>
@@ -24,14 +45,14 @@
 
           <ion-button expand="block" (click)="login()" [disabled]="!credentials" color="primary" class="login-button">
             <ion-icon name="key-outline" slot="start"></ion-icon>
-            Connect to Device
+            {{ hasDevices ? 'Add Device' : 'Connect to Device' }}
           </ion-button>
         </div>
       </div>
     </div>
 
     <div class="footer">
-      <p>Scan the QR code on your postal box to connect</p>
+      <p>{{ hasDevices ? 'Select a device or scan a new one' : 'Scan the QR code on your postal box to connect' }}</p>
     </div>
   </div>
 </ion-content>

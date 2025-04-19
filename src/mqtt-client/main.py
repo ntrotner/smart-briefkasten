@@ -6,6 +6,7 @@ Handles communication between the smart postal box and MQTT broker
 """
 
 import os
+import ssl
 import time
 import json
 import logging
@@ -38,15 +39,15 @@ DEFAULT_CONFIG = {
     'device_id': '',
     'backend_url': "",
     'device_token': "",
-    'reconnect_delay_min': 1,     # Minimum delay between reconnection attempts (seconds)
+    'reconnect_delay_min': 10,     # Minimum delay between reconnection attempts (seconds)
     'reconnect_delay_max': 120,   # Maximum delay between reconnection attempts (seconds)
     # Hardware configuration for Raspberry Pi
-    'hardware_enabled': False,    # Whether to enable hardware control
-    'stepper_pins': [17, 18, 27, 22],  # Default GPIO pins for stepper motor
-    'hall_sensor_pin': 23,        # Default GPIO pin for Hall effect sensor
-    'lock_open_steps': 200,       # Number of steps to open the lock
-    'lock_close_steps': 200,      # Number of steps to close the lock
-    'step_delay': 0.005,          # Delay between stepper motor steps (seconds)
+    'hardware_enabled': True,    # Whether to enable hardware control
+    'stepper_pins': [14, 15, 17, 23],  # Default GPIO pins for stepper motor
+    'hall_sensor_pin': 26,        # Default GPIO pin for Hall effect sensor
+    'lock_open_steps': 175,       # Number of steps to open the lock
+    'lock_close_steps': 175,      # Number of steps to close the lock
+    'step_delay': 0.0025,          # Delay between stepper motor steps (seconds)
 }
 
 class HardwareController:
@@ -58,11 +59,19 @@ class HardwareController:
         self.enabled = config.get('hardware_enabled', False) and RPI_AVAILABLE
         self.box_open = False
         self.lock_open = False
+        self.use_polling = False  # Flag for polling fallback
+        self.last_poll_time = 0   # For timer-based polling
         
         if self.enabled:
             try:
                 self._setup_gpio()
                 logger.info("Hardware controller initialized")
+                self._calibrate_lock()
+                
+                # Note about polling if needed
+                if hasattr(self, 'use_polling') and self.use_polling:
+                    logger.info("Using timer-based polling for hall sensor")
+                    
             except Exception as e:
                 logger.error(f"Failed to initialize hardware controller: {e}")
                 self.enabled = False
@@ -72,31 +81,66 @@ class HardwareController:
             else:
                 logger.info("Hardware control disabled in configuration")
     
+    def _calibrate_lock(self):
+        """Calibrate the lock"""
+        if not self.enabled:
+            logger.info("Hardware control disabled, simulating lock open")
+            self.lock_open = False
+            return True
+            
+        try:
+            logger.info("Opening lock")
+            self._control_stepper(self.config['lock_open_steps'] * 3, clockwise=False)
+            self.lock_open = False
+            return True
+        except Exception as e:
+            logger.error(f"Failed to open lock: {e}")
+            return False
+
     def _setup_gpio(self):
         """Set up GPIO pins for stepper motor and hall effect sensor"""
-        # Set up GPIO using BCM numbering
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        
-        # Set up stepper motor pins as outputs
-        for pin in self.config['stepper_pins']:
-            GPIO.setup(pin, GPIO.OUT)
-            GPIO.output(pin, GPIO.LOW)
-        
-        # Set up Hall effect sensor pin as input with pull-up resistor
-        GPIO.setup(self.config['hall_sensor_pin'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        
-        # Add event detection for the Hall effect sensor
-        GPIO.add_event_detect(
-            self.config['hall_sensor_pin'], 
-            GPIO.BOTH, 
-            callback=self._hall_sensor_callback,
-            bouncetime=300
-        )
-        
-        # Initial state check
-        self._check_box_state()
-    
+        try:
+            # Set up GPIO using BCM numbering
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setwarnings(False)
+            
+            # Set up stepper motor pins as outputs
+            for pin in self.config['stepper_pins']:
+                GPIO.setup(pin, GPIO.OUT)
+                GPIO.output(pin, GPIO.LOW)
+            
+            # Set up Hall effect sensor pin as input with pull-up resistor
+            GPIO.setup(self.config['hall_sensor_pin'], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            
+            # Remove any existing event detection to avoid conflicts
+            try:
+                GPIO.remove_event_detect(self.config['hall_sensor_pin'])
+            except:
+                # If there's no event detection, this will fail but that's okay
+                pass
+                
+            # Add event detection for the Hall effect sensor with error handling
+            try:
+                GPIO.add_event_detect(
+                    self.config['hall_sensor_pin'], 
+                    GPIO.BOTH, 
+                    callback=self._hall_sensor_callback,
+                    bouncetime=300
+                )
+                logger.info(f"Successfully set up hall effect sensor on pin {self.config['hall_sensor_pin']}")
+            except Exception as e:
+                logger.warning(f"Failed to add edge detection to hall sensor: {e}")
+                logger.info("Falling back to polling method for hall sensor")
+                # If event detection fails, we'll use a polling approach instead
+                # We'll set a flag to indicate we need to poll
+                self.use_polling = True
+            
+            # Initial state check
+            self._check_box_state()
+            
+        except Exception as e:
+            raise Exception(f"Failed to set up GPIO: {e}")
+            
     def _hall_sensor_callback(self, channel):
         """Callback for Hall effect sensor state change"""
         self._check_box_state()
@@ -106,23 +150,26 @@ class HardwareController:
         if not self.enabled:
             return
             
-        # Read the Hall effect sensor
-        # Typically, when a magnet is near, the sensor will be LOW
-        # When the box is open (magnet away), the sensor will be HIGH
-        new_state = GPIO.input(self.config['hall_sensor_pin']) == GPIO.HIGH
-        
-        if new_state != self.box_open:
-            self.box_open = new_state
-            logger.info(f"Box {'open' if self.box_open else 'closed'} detected")
+        try:
+            # Read the Hall effect sensor
+            # Typically, when a magnet is near, the sensor will be LOW
+            # When the box is open (magnet away), the sensor will be HIGH
+            new_state = GPIO.input(self.config['hall_sensor_pin']) == GPIO.HIGH
             
-            if self.mqtt_client:
-                # Publish state change
-                self.mqtt_client.publish("devices/notifications", {
-                    "id": self.config['device_id'],
-                    "type": "box_state",
-                    "state": "open" if self.box_open else "closed",
-                    "timestamp": int(time.time())
-                })
+            if new_state != self.box_open:
+                self.box_open = new_state
+                logger.info(f"Box {'open' if self.box_open else 'closed'} detected")
+                
+                if self.mqtt_client:
+                    # Publish state change
+                    self.mqtt_client.publish("devices/notifications", {
+                        "id": self.config['device_id'],
+                        "type": "box_state",
+                        "state": "open" if self.box_open else "closed",
+                        "timestamp": int(time.time())
+                    })
+        except Exception as e:
+            logger.error(f"Error checking box state: {e}")
     
     def open_lock(self):
         """Open the lock using the stepper motor"""
@@ -156,6 +203,14 @@ class HardwareController:
             logger.error(f"Failed to close lock: {e}")
             return False
     
+    def disable_packtrap(self):
+        """Disable packtrap mode"""
+        if not self.enabled:
+            logger.info("Hardware control disabled, disabling packtrap")
+            return True
+        
+        self.packtrap_active = False
+
     def open_packtrap(self):
         """Open the lock and close as soon as a close signal is received"""
         if not self.enabled:
@@ -163,13 +218,54 @@ class HardwareController:
             return True
         
         self.open_lock()
-        GPIO.add_event_detect(
-            self.config['hall_sensor_pin'], 
-            GPIO.RISING, 
-            callback=self._close_packtrap_callback,
-            bouncetime=300
-        )
-
+        
+        # Only add event detection if we're not using polling
+        if not hasattr(self, 'use_polling') or not self.use_polling:
+            # Remove existing event detection if any
+            try:
+                GPIO.remove_event_detect(self.config['hall_sensor_pin'])
+            except:
+                pass
+                
+            # Add new event detection
+            GPIO.add_event_detect(
+                self.config['hall_sensor_pin'], 
+                GPIO.RISING, 
+                callback=self._close_packtrap_callback,
+                bouncetime=300
+            )
+        else:
+            # For polling mode, we'll set a flag that will be checked in check_updates
+            self.packtrap_active = True
+            logger.info("Packtrap activated in polling mode")
+            
+        return True
+            
+    def _close_packtrap_callback(self, channel):
+        """Callback to close the lock when the box is closed in packtrap mode"""
+        logger.info("Packtrap triggered, box closed - closing lock")
+        # Wait a brief moment to ensure the box is fully closed
+        time.sleep(0.5)
+        self.close_lock()
+        
+        # If we're using event detection, clean it up
+        if not hasattr(self, 'use_polling') or not self.use_polling:
+            try:
+                GPIO.remove_event_detect(self.config['hall_sensor_pin'])
+            except:
+                pass
+            
+            # Re-add the normal hall sensor event detection
+            try:
+                GPIO.add_event_detect(
+                    self.config['hall_sensor_pin'], 
+                    GPIO.BOTH, 
+                    callback=self._hall_sensor_callback,
+                    bouncetime=300
+                )
+            except Exception as e:
+                logger.warning(f"Failed to restore hall sensor event detection: {e}")
+    
     def _control_stepper(self, steps, clockwise=True):
         """Control the stepper motor"""
         # Stepper motor sequence for a 4-step sequence (full step)
@@ -188,6 +284,32 @@ class HardwareController:
                 for i, pin in enumerate(self.config['stepper_pins']):
                     GPIO.output(pin, step[i])
                 time.sleep(self.config['step_delay'])
+                
+    def check_updates(self):
+        """Periodic check method to be called from main loop"""
+        if not self.enabled:
+            return
+            
+        # If using polling for hall sensor, check periodically
+        if hasattr(self, 'use_polling') and self.use_polling:
+            current_time = time.time()
+            # Poll every 0.2 seconds (5 times per second)
+            if current_time - self.last_poll_time >= 0.2:
+                # Check the current state
+                previous_state = self.box_open
+                self._check_box_state()
+                
+                # Handle packtrap mode if active
+                if hasattr(self, 'packtrap_active') and self.packtrap_active:
+                    # If box was open and now it's closed, trigger the packtrap
+                    if previous_state and not self.box_open:
+                        logger.info("Packtrap triggered via polling - box closed, closing lock")
+                        # Wait a brief moment to ensure the box is fully closed
+                        time.sleep(0.5)
+                        self.close_lock()
+                        self.packtrap_active = False
+                
+                self.last_poll_time = current_time
     
     def cleanup(self):
         """Clean up GPIO resources"""
@@ -247,14 +369,20 @@ class DeviceState:
         if hasattr(self.mqtt_client, 'hardware_controller'):
             hardware = self.mqtt_client.hardware_controller
             
+            if (state == "pack" or state == "closed") and hardware and hardware.packtrap_active:
+                hardware.disable_packtrap()
+
             if state == "open" and hardware:
                 hardware.open_lock()
+                hardware.disable_packtrap()
             
             elif state == "closed" and hardware:
                 hardware.close_lock()
+                hardware.disable_packtrap()
             
-            elif state == "packtrap":
-                hardware.open_lock()
+            elif state == "packtrap" and hardware:
+                if hardware.lock_open:
+                    hardware.open_packtrap()
 
 
     def handle_options(self, topic, payload):
@@ -323,10 +451,10 @@ class DeviceState:
             
             # If we can't determine the device ID from the payload, 
             # default to processing the message (old behavior)
-            return True
+            return False
         except Exception as e:
             logger.error(f"Error checking device ID in payload: {e}")
-            return True
+            return False
 
 class PostalBoxMQTTClient:
     """MQTT Client for Smart Postal Box communications"""
@@ -353,6 +481,8 @@ class PostalBoxMQTTClient:
             transport="websockets"
         )
         self.client.ws_set_options(path="/")
+        self.client.tls_set(cert_reqs=ssl.CERT_NONE)
+
 
         # Enable automatic reconnect with exponential backoff
         self.client.reconnect_delay_set(
@@ -667,7 +797,11 @@ def main():
                     logger.debug("Refreshing device state")
                     device_state.request_latest_state()  # Use refactored method
                 
-            time.sleep(5)
+            # If hardware controller is available, call its check_updates method
+            if hasattr(mqtt_client, 'hardware_controller') and mqtt_client.hardware_controller:
+                mqtt_client.hardware_controller.check_updates()
+                
+            time.sleep(0.1)  # Shorter sleep for more responsive polling
     else:
         logger.error("Failed to connect to MQTT broker. Exiting.")
         exit(1)

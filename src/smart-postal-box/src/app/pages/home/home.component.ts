@@ -1,18 +1,23 @@
 import { Component, HostListener, OnInit, signal } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { IonBadge, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonIcon, IonItem, IonLabel, IonList, IonNote, IonSkeletonText, IonText, ToastController } from '@ionic/angular/standalone';
 import { DeviceDataService } from 'src/app/services/device-data/device-data.service';
 import { OpenStateOptions } from 'src/lib/open-api/model/openStateOptions';
 import { ClosedStateOptions } from 'src/lib/open-api/model/closedStateOptions';
 import { PacktrapStateOptions } from 'src/lib/open-api/model/packtrapStateOptions';
 import { Store } from '@ngrx/store';
+import { Router } from '@angular/router';
 import * as DeviceActions from '../../store/device/device.actions';
 import * as NotificationsActions from '../../store/notifications/notifications.actions';
+import * as AuthActions from '../../store/auth/auth.actions';
+import * as OwnershipActions from '../../store/ownership/ownership.actions';
 import { selectStateChangePending, selectDeviceLoading, selectDeviceError } from '../../store/device/device.selectors';
 import { selectAllNotifications, selectNotificationsLoading, selectNotificationsError } from '../../store/notifications/notifications.selectors';
+import { selectAllDevices, selectSelectedDevice, selectSelectedDeviceId } from '../../store/ownership/ownership.selectors';
 import { DeviceState } from 'src/lib/open-api/model/deviceState';
 import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { OwnedDevice } from '../../store/ownership/ownership.state';
 
 @Component({
   selector: 'app-home',
@@ -20,6 +25,7 @@ import { Subject } from 'rxjs';
   styleUrls: ['./home.component.scss'],
   imports: [
     AsyncPipe,
+    DatePipe,
     IonText,
     IonSkeletonText,
     IonBadge,
@@ -44,6 +50,13 @@ export class HomeComponent implements OnInit {
     closed: ClosedStateOptions.StateEnum.Closed as any,
     packtrap: PacktrapStateOptions.StateEnum.Packtrap as any,
   };
+  
+  // Device selector state
+  public deviceSelectorVisible = false;
+  public devices$: Observable<OwnedDevice[]>;
+  public selectedDevice$: Observable<OwnedDevice | null>;
+  public selectedDeviceId$: Observable<string | null>;
+
   /**
    * Device options
    */
@@ -92,10 +105,19 @@ export class HomeComponent implements OnInit {
   constructor(
     private deviceDataService: DeviceDataService,
     private store: Store,
-    private toastController: ToastController
-  ) {}
+    private toastController: ToastController,
+    private router: Router
+  ) {
+    // Initialize observables for device selection
+    this.devices$ = this.store.select(selectAllDevices);
+    this.selectedDevice$ = this.store.select(selectSelectedDevice);
+    this.selectedDeviceId$ = this.store.select(selectSelectedDeviceId);
+  }
 
   ngOnInit() {
+    // Load saved devices
+    this.store.dispatch(OwnershipActions.loadDevices());
+    
     // Load notifications on init
     this.refreshNotifications();
 
@@ -165,6 +187,54 @@ export class HomeComponent implements OnInit {
     
     const date = new Date(timestamp);
     return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Open device selector modal
+   */
+  openDeviceSelector() {
+    this.deviceSelectorVisible = true;
+  }
+
+  /**
+   * Close device selector modal
+   */
+  closeDeviceSelector() {
+    this.deviceSelectorVisible = false;
+  }
+
+  /**
+   * Select a device and switch to it
+   */
+  selectDevice(device: OwnedDevice) {
+    // Select the device in the store
+    this.store.dispatch(OwnershipActions.selectDevice({ deviceId: device.id }));
+    
+    // Login to the selected device
+    this.store.dispatch(AuthActions.loginDevice({
+      deviceToken: device.deviceToken,
+      baseUrl: device.baseUrl
+    }));
+    
+    // Refresh device data
+    this.store.dispatch(DeviceActions.loadDeviceData());
+    
+    // Close the selector
+    this.closeDeviceSelector();
+  }
+
+  /**
+   * Go to the login page to add a new device
+   */
+  goToAddDevice() {
+    // Complete reset for adding a new device - effects will handle all necessary cleanup
+    this.store.dispatch(AuthActions.resetForNewDevice());
+    
+    // Close the selector modal
+    this.closeDeviceSelector();
+    
+    // Navigate to login page
+    this.router.navigate(['/login']);
   }
 
   /**

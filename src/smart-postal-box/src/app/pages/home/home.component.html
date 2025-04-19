@@ -1,5 +1,19 @@
 @if (iconSize$(); as iconSize) {
 <div class="home-container">
+  <!-- Device Selector Header -->
+  <div class="device-selector-container">
+    <div class="device-selector" (click)="openDeviceSelector()">
+      @if (selectedDevice$ | async; as selectedDevice) {
+        <div class="device-name">{{ selectedDevice.name }}</div>
+        <ion-icon name="chevron-down-outline" class="device-selector-icon"></ion-icon>
+      } @else {
+        <div class="device-name">
+          <ion-skeleton-text [animated]="true" style="width: 120px;"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  </div>
+
   <div class="header-container">
     <div class="header-left-container">
       <div class="title-container">
@@ -34,6 +48,49 @@
       </ion-button>
     </div>
   </div>
+  
+  <!-- Device Selector Modal -->
+  @if (deviceSelectorVisible) {
+  <div class="device-selector-backdrop" (click)="closeDeviceSelector()">
+    <div class="device-selector-modal" (click)="$event.stopPropagation()">
+      <div class="device-selector-header">
+        <h4>Select a Device</h4>
+        <ion-button fill="clear" (click)="closeDeviceSelector()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="device-selector-content">
+        @if (devices$ | async; as devices) {
+          @for (device of devices; track device.id) {
+            <div class="device-item" [class.active]="(selectedDeviceId$ | async) === device.id" (click)="selectDevice(device)">
+              <div class="device-image">
+                <ion-icon name="mail-outline" size="large"></ion-icon>
+              </div>
+              <div class="device-info">
+                <h5>{{ device.name }}</h5>
+                <p>Last connected: {{ device.lastConnected | date:'short' }}</p>
+              </div>
+              @if ((selectedDeviceId$ | async) === device.id) {
+                <ion-icon name="checkmark-circle" class="device-selected-icon" color="primary"></ion-icon>
+              }
+            </div>
+          }
+        } @else {
+          <div class="no-devices">
+            <p>No devices available</p>
+          </div>
+        }
+        <div class="device-selector-actions">
+          <ion-button expand="block" (click)="goToAddDevice()">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Add New Device
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
   <div class="image-container">
     <img src="assets/parcelbin.webp" height="100%" alt="Parcel Bin" class="parcel-bin-image">
   </div>

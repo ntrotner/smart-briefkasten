@@ -5,6 +5,7 @@ import { map, mergeMap, catchError, filter, tap } from 'rxjs/operators';
 import { AuthenticationService } from '../../../lib/open-api/api/authentication.service';
 import * as AuthActions from './auth.actions';
 import * as DeviceActions from '../../store/device/device.actions';
+import * as NotificationsActions from '../../store/notifications/notifications.actions';
 import { Store } from '@ngrx/store';
 import { selectAuthState } from './auth.selectors';
 
@@ -56,6 +57,20 @@ export class AuthEffects {
           map((authState) => DeviceActions.loadDeviceData())
         )
       )
+    )
+  );
+
+  // Effect for complete reset when adding a new device
+  resetForNewDevice$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.resetForNewDevice),
+      mergeMap(() => [
+        // Log out current device
+        AuthActions.logoutDeviceSuccess(),
+        
+        // Clear notifications
+        NotificationsActions.clearAllNotifications()
+      ])
     )
   );
 

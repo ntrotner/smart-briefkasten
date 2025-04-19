@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { combineLatest, of } from 'rxjs';
-import { map, mergeMap, catchError, switchMap } from 'rxjs/operators';
+import { map, mergeMap, catchError, switchMap, tap } from 'rxjs/operators';
 import { DeviceService } from '../../../lib/open-api/api/device.service';
+import { Store } from '@ngrx/store';
 import * as DeviceActions from './device.actions';
 
 @Injectable()
@@ -15,10 +16,16 @@ export class DeviceEffects {
             this.deviceService.deviceGetOptionsGet(),
             this.deviceService.deviceGetStateGet()
         ]).pipe(
-          map(([options, state]) => DeviceActions.loadDeviceDataSuccess({
-            options: {...options, name: 'Smart Postal Box'},
-            state,
-          })),
+          map(([options, state]) => {
+            // Get the device name (or default)
+            const deviceName = options.name || 'Smart Postal Box';
+            
+            // Return the success action with the data
+            return DeviceActions.loadDeviceDataSuccess({
+              options: {...options, name: deviceName},
+              state,
+            });
+          }),
           catchError(error => of(DeviceActions.loadDeviceDataFailure({ error: error.message })))
         )
       )
@@ -50,6 +57,7 @@ export class DeviceEffects {
 
   constructor(
     private actions$: Actions,
-    private deviceService: DeviceService
+    private deviceService: DeviceService,
+    private store: Store
   ) {}
 } 
